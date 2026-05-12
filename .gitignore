@@ -1,0 +1,139 @@
+# Xcode
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+
+## User settings
+xcuserdata/
+
+## Obj-C/Swift specific
+*.hmap
+
+## App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+#
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Packages/
+# Package.pins
+# Package.resolved
+# *.xcodeproj
+#
+# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
+# hence it is not needed unless you have added a package configuration file to your project
+# .swiftpm
+
+.build/
+
+# CocoaPods
+#
+# We recommend against adding the Pods directory to your .gitignore. However
+# you should judge for yourself, the pros and cons are mentioned at:
+# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
+#
+# Pods/
+#
+# Add this line if you want to avoid checking in source code from the Xcode workspace
+# *.xcworkspace
+
+# Carthage
+#
+# Add this line if you want to avoid checking in source code from Carthage dependencies.
+# Carthage/Checkouts
+
+Carthage/Build/
+
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repo.
+# Instead, use fastlane to re-generate the screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/#source-control
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+.DS_Store
+PhotoReference/冰摇柠檬茶.PNG
+PhotoReference/冰摇桃桃乌龙茶.PNG
+PhotoReference/冰摇红莓黑加仑茶.PNG
+PhotoReference/冷萃冰咖啡.PNG
+PhotoReference/加浓抹茶拿铁.PNG
+PhotoReference/加浓焙茶拿铁.PNG
+PhotoReference/卡布奇诺.PNG
+PhotoReference/原味蒸气奶.PNG
+PhotoReference/可可蒸气奶.PNG
+PhotoReference/大溪地风情绵云冷萃.PNG
+PhotoReference/大溪地香草风味拿铁（不另外加糖）.PNG
+PhotoReference/大溪地香草风情冰震浓缩.PNG
+PhotoReference/大溪地香草风情巴旦木拿铁.PNG
+PhotoReference/巧克力风味星冰乐.PNG
+PhotoReference/巴旦木拿铁.PNG
+PhotoReference/抹茶可可碎片星冰乐.PNG
+PhotoReference/抹茶拿铁.PNG
+PhotoReference/抹茶星冰乐.PNG
+PhotoReference/抹茶鸳鸯.PNG
+PhotoReference/拿铁.PNG
+PhotoReference/摩卡.PNG
+PhotoReference/摩卡可可碎片星冰乐.PNG
+PhotoReference/星星淘梨冰摇茶.PNG
+PhotoReference/桃桃果冻星冰乐.PNG
+PhotoReference/椰子丝绒燕麦拿铁.PNG
+PhotoReference/椰香浓小杯拿铁.PNG
+PhotoReference/榛果风味巴旦木拿铁.PNG
+PhotoReference/榛果风味拿铁.PNG
+PhotoReference/比利时巧克力星冰乐.PNG
+PhotoReference/比利时黑巧拿铁.PNG
+PhotoReference/比利时黑巧红茶拿铁.PNG
+PhotoReference/浓小杯拿铁.PNG
+PhotoReference/浓缩咖啡.PNG
+PhotoReference/浓缩咖啡星冰乐.PNG
+PhotoReference/浓缩康保蓝.PNG
+PhotoReference/浓缩玛奇朵.PNG
+PhotoReference/浓郁咖啡拿铁.PNG
+PhotoReference/海盐焦糖风味冰震浓缩.PNG
+PhotoReference/海盐焦糖风味高蛋白拿铁PRO.PNG
+PhotoReference/海盐风味柠檬金烘冰摇美式.PNG
+PhotoReference/焙茶拿铁.PNG
+PhotoReference/焙茶星冰乐.PNG
+PhotoReference/焦糖咖啡星冰乐.PNG
+PhotoReference/焦糖玛奇朵.PNG
+PhotoReference/燕麦拿铁.PNG
+PhotoReference/燕麦焦糖玛奇朵.PNG
+PhotoReference/玫瑰20抹茶拿铁.PNG
+PhotoReference/玫瑰20拿铁.PNG
+PhotoReference/玫瑰20拿铁（不另外加糖）.PNG
+PhotoReference/玫瑰20美式.PNG
+PhotoReference/粉莓柠力生咖.PNG
+PhotoReference/糯香斑斓风味拿铁.PNG
+PhotoReference/糯香斑斓风味拿铁（不另外加糖）.PNG
+PhotoReference/糯香斑斓风味美式.PNG
+PhotoReference/糯香斑斓风味美式（不另外加糖）.PNG
+PhotoReference/红茶拿铁.PNG
+PhotoReference/红茶鸳鸯.PNG
+PhotoReference/红颜草莓星冰乐.PNG
+PhotoReference/经典巧克力饮品.PNG
+PhotoReference/美式咖啡.PNG
+PhotoReference/芒果西番莲果茶星冰乐.PNG
+PhotoReference/芒椰交响星冰乐.PNG
+PhotoReference/莓莓风味拿铁（不另外加糖）.PNG
+PhotoReference/莓莓风味美式.PNG
+PhotoReference/莓莓风味美式（不另外加糖）.PNG
+PhotoReference/金烘拿铁.PNG
+PhotoReference/金烘美式咖啡.PNG
+PhotoReference/金烘馥芮白.PNG
+PhotoReference/香草味蒸气奶.PNG
+PhotoReference/香草风味拿铁.PNG
+PhotoReference/香草风味星冰乐.PNG
+PhotoReference/香草风味高蛋白拿铁PRO.PNG
+PhotoReference/馥芮白.PNG
+PhotoReference/高蛋白抹茶拿铁PRO.PNG
+PhotoReference/高蛋白拿铁PRO.PNG
+PhotoReference/鲜萃滴滤咖啡.PNG
