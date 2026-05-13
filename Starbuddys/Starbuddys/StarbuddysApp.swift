@@ -1,17 +1,22 @@
-//
-//  StarbuddysApp.swift
-//  Starbuddys
-//
-//  Created by Geekest on 2026/5/13.
-//
-
 import SwiftUI
+import SwiftData
 
 @main
 struct StarbuddysApp: App {
+    let modelContainer: ModelContainer
+
+    init() {
+        do {
+            modelContainer = try ModelContainer(for: CupRecord.self)
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .modelContainer(modelContainer)
         }
     }
 }
