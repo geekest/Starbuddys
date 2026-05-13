@@ -427,7 +427,11 @@ struct DetailPage: View {
             isFirstTime: isFirstTime
         )
         context.insert(record)
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            assertionFailure("Failed to save CupRecord: \(error)")
+        }
 
         let drinkCount = allRecords.filter { $0.drinkID == drink.id }.count + 1
         let msg: String

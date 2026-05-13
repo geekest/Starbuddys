@@ -9,12 +9,16 @@ final class DrinkRepository: ObservableObject {
     private init() { load() }
 
     private func load() {
-        guard
-            let url = Bundle.main.url(forResource: "drinks.seed", withExtension: "json"),
-            let data = try? Data(contentsOf: url),
-            let seed = try? JSONDecoder().decode(DrinkSeedData.self, from: data)
-        else { return }
-        drinks = seed.drinks
+        guard let url = Bundle.main.url(forResource: "drinks.seed", withExtension: "json") else {
+            assertionFailure("drinks.seed.json not found in bundle")
+            return
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            drinks = try JSONDecoder().decode(DrinkSeedData.self, from: data).drinks
+        } catch {
+            assertionFailure("Failed to load drinks.seed.json: \(error)")
+        }
     }
 
     func drink(id: String) -> Drink? {

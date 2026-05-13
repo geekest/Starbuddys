@@ -11,6 +11,34 @@ struct Drink: Identifiable, Codable, Hashable {
     let imageName: String
     let tags: [DrinkTag]
 
+    init(id: String, nameCN: String, nameEN: String, category: DrinkCategory,
+         subCategory: String?, description: String, sizes: [String: Int],
+         imageName: String, tags: [DrinkTag]) {
+        self.id = id
+        self.nameCN = nameCN
+        self.nameEN = nameEN
+        self.category = category
+        self.subCategory = subCategory
+        self.description = description
+        self.sizes = sizes
+        self.imageName = imageName
+        self.tags = tags
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        nameCN = try c.decode(String.self, forKey: .nameCN)
+        nameEN = try c.decode(String.self, forKey: .nameEN)
+        category = try c.decode(DrinkCategory.self, forKey: .category)
+        subCategory = try c.decodeIfPresent(String.self, forKey: .subCategory)
+        description = try c.decode(String.self, forKey: .description)
+        sizes = try c.decode([String: Int].self, forKey: .sizes)
+        imageName = try c.decode(String.self, forKey: .imageName)
+        // 未知 tag 直接忽略，避免一条脏数据让整份 seed 解析失败
+        tags = (try c.decodeIfPresent([String].self, forKey: .tags) ?? []).compactMap(DrinkTag.init(rawValue:))
+    }
+
     var sizePrices: [CupSize: Int] {
         var result: [CupSize: Int] = [:]
         for (key, value) in sizes {

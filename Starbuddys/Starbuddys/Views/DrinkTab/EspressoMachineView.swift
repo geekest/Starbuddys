@@ -5,7 +5,6 @@ import SwiftUI
 struct EspressoMachineView: View {
     var brewing: Bool = false
     var todayCount: Int = 0
-    @State private var streamPhase: CGFloat = 0
 
     var body: some View {
         GeometryReader { geo in
@@ -231,22 +230,6 @@ struct EspressoMachineView: View {
                         .position(x: 228 * scaleX, y: 174 * scaleY)
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
-            }
-        }
-        .onAppear {
-            if brewing {
-                withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
-                    streamPhase = 10
-                }
-            }
-        }
-        .onChange(of: brewing) { _, newValue in
-            if newValue {
-                withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
-                    streamPhase = 10
-                }
-            } else {
-                streamPhase = 0
             }
         }
     }
