@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1400" />
+<title>StarBuddys · 低保真线框稿</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; font-family: "PingFang SC", "Helvetica Neue", system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+
+  /* low-fi wireframe primitives */
+  :root {
+    --ink: #1f1f1d;
+    --ink-soft: #5a5a55;
+    --ink-muted: #a8a59f;
+    --paper: #ffffff;
+    --paper-soft: #f7f5ef;
+    --line: #2a2a28;
+    --line-soft: #c8c5bc;
+    --accent: #1f5c3f;       /* dark green annotation */
+    --accent-soft: #e3ede5;  /* pale green fill */
+    --hatch: repeating-linear-gradient(45deg, transparent 0 4px, rgba(0,0,0,0.06) 4px 5px);
+  }
+
+  .wf { color: var(--ink); font-family: "PingFang SC", "Helvetica Neue", system-ui, sans-serif; }
+  .wf .ph { background: var(--paper-soft); background-image: var(--hatch); border: 1.2px solid var(--line); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--ink-soft); font-size: 11px; }
+  .wf .stroke { border: 1.5px solid var(--line); }
+  .wf .stroke-soft { border: 1.2px solid var(--line-soft); }
+  .wf .anno { color: var(--accent); font-size: 11px; }
+  .wf .label { font-size: 10px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* phone frame */
+  .phone {
+    width: 375px; height: 812px;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 36px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .phone-status {
+    height: 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 24px 0;
+    font-size: 12px; font-weight: 600; color: var(--ink);
+  }
+  .phone-status .status-icons { display:flex; gap: 4px; align-items: center; }
+  .phone-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+  .phone-tab {
+    height: 76px; flex: 0 0 76px;
+    border-top: 1.2px solid var(--line);
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    padding-bottom: 14px;
+    background: var(--paper);
+  }
+  .phone-tab .tab-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    font-size: 11px; color: var(--ink-soft);
+  }
+  .phone-tab .tab-item.active { color: var(--accent); font-weight: 600; }
+  .phone-tab .tab-icon { width: 22px; height: 22px; border: 1.5px solid currentColor; border-radius: 50%; display:flex;align-items:center;justify-content:center; font-size: 10px; }
+  .phone-tab .tab-item.active .tab-icon { background: var(--accent-soft); }
+
+  /* shared header */
+  .screen-h { padding: 14px 20px 6px; display: flex; align-items: baseline; justify-content: space-between; }
+  .screen-h h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .screen-h .sub { font-size: 12px; color: var(--ink-muted); }
+
+  /* annotation callouts on canvas */
+  .callout { position: absolute; font-size: 11px; color: var(--accent); font-style: italic; pointer-events: none; }
+  .callout .arrow { display: inline-block; margin: 0 4px; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="phone.jsx"></script>
+<script type="text/babel" src="screens/drink-tab.jsx"></script>
+<script type="text/babel" src="screens/menu-detail.jsx"></script>
+<script type="text/babel" src="screens/library-tab.jsx"></script>
+<script type="text/babel" src="screens/history-tab.jsx"></script>
+<script type="text/babel" src="screens/profile-tab.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</head>
+<body>
+<div id="root"></div>
+</body>
+</html>
