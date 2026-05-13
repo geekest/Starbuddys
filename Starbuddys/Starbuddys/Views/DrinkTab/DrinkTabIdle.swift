@@ -26,6 +26,11 @@ struct DrinkTabIdle: View {
         return records.first { $0.drunkAt >= cutoff }
     }
 
+    private var todayCount: Int {
+        let cal = Calendar.current
+        return records.filter { cal.isDateInToday($0.drunkAt) }.count
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -47,7 +52,7 @@ struct DrinkTabIdle: View {
 
                 // Espresso machine
                 ZStack(alignment: .bottom) {
-                    EspressoMachineView(brewing: isBrewing)
+                    EspressoMachineView(brewing: isBrewing, todayCount: todayCount)
                         .frame(height: 470)
                         .onTapGesture { handleBrewTap() }
 

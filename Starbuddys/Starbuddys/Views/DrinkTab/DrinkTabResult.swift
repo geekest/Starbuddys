@@ -19,8 +19,9 @@ struct DrinkTabResult: View {
         return options[abs(drink.id.hashValue) % options.count]
     }
 
-    private var (recSize, recTemp, recSugar): (CupSize, Temperature, SugarLevel) {
-        BrewRecommender.defaultConfig(for: drink)
+    private var recConfig: (size: CupSize, temp: Temperature, sugar: SugarLevel) {
+        let c = BrewRecommender.defaultConfig(for: drink)
+        return (c.0, c.1, c.2)
     }
 
     var body: some View {
@@ -121,9 +122,9 @@ struct DrinkTabResult: View {
 
             // Recommendation row
             HStack(spacing: 8) {
-                ForEach([("推荐杯型", recSize.displayName),
-                         ("推荐温度", recTemp.rawValue),
-                         ("推荐糖度", recSugar.rawValue)], id: \.0) { label, value in
+                ForEach([("推荐杯型", recConfig.size.displayName),
+                         ("推荐温度", recConfig.temp.rawValue),
+                         ("推荐糖度", recConfig.sugar.rawValue)], id: \.0) { label, value in
                     VStack(spacing: 3) {
                         Text(label)
                             .font(.sbLabel)

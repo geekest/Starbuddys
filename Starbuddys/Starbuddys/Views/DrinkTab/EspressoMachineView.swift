@@ -4,6 +4,7 @@ import SwiftUI
 // ViewBox: 320×480, scaled to fill parent
 struct EspressoMachineView: View {
     var brewing: Bool = false
+    var todayCount: Int = 0
     @State private var streamPhase: CGFloat = 0
 
     var body: some View {
@@ -166,11 +167,11 @@ struct EspressoMachineView: View {
 
                     // Display text
                     VStack(spacing: 4) {
-                        Text(brewing ? "EXTRACTING…" : "READY · 第 0 杯")
+                        Text(brewing ? "EXTRACTING…" : "READY · 第 \(todayCount + 1) 杯")
                             .font(.system(size: 9 * scaleX, weight: .medium, design: .monospaced))
                             .foregroundStyle(Color(hex: "#7FD8A6"))
                             .tracking(2)
-                        Text(brewing ? "17.4s ▮▮▮▮▯" : "今日 · 0 杯")
+                        Text(brewing ? "17.4s ▮▮▮▮▯" : "今日 · \(todayCount) 杯")
                             .font(.system(size: 14 * scaleX, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color(hex: "#E9F2EC"))
                             .tracking(1)

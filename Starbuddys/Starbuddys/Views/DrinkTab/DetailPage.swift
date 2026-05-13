@@ -162,7 +162,7 @@ struct DetailPage: View {
                     if isFirstTime {
                         label("第一次喝", fg: Color.sbAmber, bg: Color.sbAmberSoft)
                     }
-                    label(Date().formatted("YYYY/MM/dd · a"), fg: Color.sbGreenDeep, bg: Color.sbGreenPale)
+                    label(Date().formatted("yyyy/MM/dd · a"), fg: Color.sbGreenDeep, bg: Color.sbGreenPale)
                 }
                 .padding(.top, 4)
             }
