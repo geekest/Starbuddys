@@ -192,11 +192,12 @@ struct DetailPage: View {
                     .font(.sbTitleL)
                     .foregroundStyle(Color.sbInk)
                     .multilineTextAlignment(.center)
-                Text("\(drink.nameEN) · \(drink.category.displayName)")
+                Text(drink.nameEN.isEmpty ? drink.category.displayName : "\(drink.nameEN) · \(drink.category.displayName)")
                     .font(.sbCaption)
                     .foregroundStyle(Color.sbInk2)
 
                 HStack(spacing: 8) {
+                    BrandBadge(brand: drink.brand)
                     if isFirstTime {
                         label("第一次喝", fg: Color.sbAmber, bg: Color.sbAmberSoft)
                     }

@@ -2,6 +2,7 @@ import Foundation
 
 struct Drink: Identifiable, Codable, Hashable {
     let id: String
+    let brand: BrandType
     let nameCN: String
     let nameEN: String
     let category: DrinkCategory
@@ -11,10 +12,11 @@ struct Drink: Identifiable, Codable, Hashable {
     let imageName: String
     let tags: [DrinkTag]
 
-    init(id: String, nameCN: String, nameEN: String, category: DrinkCategory,
-         subCategory: String?, description: String, sizes: [String: Int],
-         imageName: String, tags: [DrinkTag]) {
+    init(id: String, brand: BrandType = .starbucks, nameCN: String, nameEN: String,
+         category: DrinkCategory, subCategory: String?, description: String,
+         sizes: [String: Int], imageName: String, tags: [DrinkTag]) {
         self.id = id
+        self.brand = brand
         self.nameCN = nameCN
         self.nameEN = nameEN
         self.category = category
@@ -37,6 +39,13 @@ struct Drink: Identifiable, Codable, Hashable {
         imageName = try c.decode(String.self, forKey: .imageName)
         // 未知 tag 直接忽略，避免一条脏数据让整份 seed 解析失败
         tags = (try c.decodeIfPresent([String].self, forKey: .tags) ?? []).compactMap(DrinkTag.init(rawValue:))
+        // 兼容旧数据：未指定 brand 时按分类推断
+        if let raw = try c.decodeIfPresent(String.self, forKey: .brand),
+           let b = BrandType(rawValue: raw) {
+            brand = b
+        } else {
+            brand = category.brand
+        }
     }
 
     var sizePrices: [CupSize: Int] {

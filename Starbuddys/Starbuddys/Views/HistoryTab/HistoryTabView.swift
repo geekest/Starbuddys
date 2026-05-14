@@ -287,9 +287,12 @@ struct HistoryTabView: View {
             DrinkAvatar(drink: drink, size: 48)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(record.drunkAt.formatted(date: .abbreviated, time: .shortened))
-                    .font(.sbLabel)
-                    .foregroundStyle(Color.sbInk2)
+                HStack(spacing: 6) {
+                    BrandBadge(brand: drink.brand, size: 9)
+                    Text(record.drunkAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.sbLabel)
+                        .foregroundStyle(Color.sbInk2)
+                }
                 Text(drink.nameCN)
                     .font(.sbBodyMB)
                     .foregroundStyle(Color.sbInk)

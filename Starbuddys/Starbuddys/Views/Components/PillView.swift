@@ -54,6 +54,34 @@ struct PillView: View {
     }
 }
 
+struct BrandBadge: View {
+    let brand: BrandType
+    var size: CGFloat = 11
+
+    var body: some View {
+        Text(brand.displayName)
+            .font(.system(size: size, weight: .bold))
+            .foregroundStyle(textColor)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .background(bgColor)
+            .clipShape(Capsule())
+    }
+
+    private var bgColor: Color {
+        switch brand {
+        case .starbucks: return Color.sbGreenPale
+        case .manner:    return Color(red: 0.16, green: 0.16, blue: 0.18)
+        }
+    }
+    private var textColor: Color {
+        switch brand {
+        case .starbucks: return Color.sbGreenDeep
+        case .manner:    return .white
+        }
+    }
+}
+
 struct PillRow<T: Hashable>: View {
     let options: [(label: String, value: T, count: Int?)]
     @Binding var selection: T

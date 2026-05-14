@@ -18,6 +18,7 @@ struct DrinkPickerSheet: View {
 
     @EnvironmentObject private var repo: DrinkRepository
     @State private var query = ""
+    @State private var brand: BrandType = .starbucks
     @State private var filter: PickerFilter = .popular
     @State private var selected: Drink? = nil
     @Environment(\.dismiss) private var dismiss
@@ -29,30 +30,31 @@ struct DrinkPickerSheet: View {
     }
 
     private var popularDrinkIDs: [String] {
-        let sorted = drinkCounts.sorted { $0.value > $1.value }
+        // 仅在所选品牌内统计热门
+        let brandDrinkIDs = Set(repo.drinks(brand: brand).map { $0.id })
+        let filtered = drinkCounts.filter { brandDrinkIDs.contains($0.key) }
+        let sorted = filtered.sorted { $0.value > $1.value }
         return Array(sorted.prefix(9).map { $0.key })
     }
 
     private var filteredDrinks: [Drink] {
-        var base: [Drink]
         if !query.isEmpty {
-            base = repo.search(query)
-        } else {
-            switch filter {
-            case .popular:
-                let popularSet = Set(popularDrinkIDs)
-                base = repo.drinks.filter { popularSet.contains($0.id) }
-                if base.isEmpty { base = Array(repo.drinks.prefix(9)) }
-            case .category(let cat):
-                base = repo.drinks(for: cat)
-            }
+            return repo.search(query).filter { $0.brand == brand }
         }
-        return base
+        switch filter {
+        case .popular:
+            let popularSet = Set(popularDrinkIDs)
+            let base = repo.drinks(brand: brand).filter { popularSet.contains($0.id) }
+            if base.isEmpty { return Array(repo.drinks(brand: brand).prefix(9)) }
+            return base
+        case .category(let cat):
+            return repo.drinks(brand: brand, category: cat)
+        }
     }
 
     private var filterOptions: [(label: String, value: PickerFilter, count: Int?)] {
         var opts: [(String, PickerFilter, Int?)] = [("热门", .popular, nil)]
-        for cat in DrinkCategory.allCases {
+        for cat in DrinkCategory.categories(for: brand) {
             opts.append((cat.displayName, .category(cat), nil))
         }
         return opts
@@ -104,6 +106,30 @@ struct DrinkPickerSheet: View {
             .background(Color.sbCream)
             .cornerRadius(12)
             .padding(.horizontal, 20)
+
+            // Brand selector
+            HStack(spacing: 8) {
+                ForEach(BrandType.allCases, id: \.self) { b in
+                    Button {
+                        withAnimation {
+                            brand = b
+                            filter = .popular
+                            selected = nil
+                        }
+                    } label: {
+                        Text(b.displayName)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(brand == b ? .white : Color.sbInk1)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 9)
+                            .background(brand == b ? Color.sbGreenDeep : Color.sbLine.opacity(0.5))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
 
             // Category pills
             ScrollView(.horizontal, showsIndicators: false) {

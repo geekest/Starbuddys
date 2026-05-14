@@ -14,6 +14,7 @@ struct LibraryTabView: View {
     @Query(sort: \CupRecord.drunkAt, order: .reverse) private var records: [CupRecord]
 
     @State private var filter: LibraryFilter = .all
+    @State private var brand: BrandType = .starbucks
     @State private var searchQuery = ""
     @State private var lockedDrink: Drink? = nil
     @State private var showLockedAlert = false
@@ -27,9 +28,17 @@ struct LibraryTabView: View {
 
     private var unlockedIDs: Set<String> { Set(drinkCounts.keys) }
 
+    private var brandDrinks: [Drink] {
+        repo.drinks(brand: brand)
+    }
+
+    private var brandUnlockedIDs: Set<String> {
+        Set(brandDrinks.map { $0.id }).intersection(unlockedIDs)
+    }
+
     private var allDrinks: [Drink] {
-        if searchQuery.isEmpty { return repo.drinks }
-        return repo.search(searchQuery)
+        if searchQuery.isEmpty { return brandDrinks }
+        return repo.search(searchQuery).filter { $0.brand == brand }
     }
 
     private var filteredDrinks: [Drink] {
@@ -41,7 +50,7 @@ struct LibraryTabView: View {
     }
 
     private var groupedDrinks: [(DrinkCategory, [Drink])] {
-        DrinkCategory.allCases.compactMap { cat in
+        DrinkCategory.categories(for: brand).compactMap { cat in
             let drinks = filteredDrinks.filter { $0.category == cat }
             guard !drinks.isEmpty else { return nil }
             return (cat, drinks)
@@ -66,6 +75,26 @@ struct LibraryTabView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 12)
                         .padding(.bottom, 8)
+
+                        // Brand selector
+                        HStack(spacing: 8) {
+                            ForEach(BrandType.allCases, id: \.self) { b in
+                                Button {
+                                    withAnimation { brand = b }
+                                } label: {
+                                    Text(b.displayName)
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(brand == b ? .white : Color.sbInk1)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 9)
+                                        .background(brand == b ? Color.sbGreenDeep : Color.sbLine.opacity(0.5))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 12)
 
                         // Progress card
                         progressCard
@@ -133,14 +162,14 @@ struct LibraryTabView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("已收集")
+                    Text("已收集 · \(brand.displayName)")
                         .font(.sbLabel)
                         .foregroundStyle(.white.opacity(0.8))
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("\(unlockedIDs.count)")
+                        Text("\(brandUnlockedIDs.count)")
                             .font(.system(size: 28, weight: .heavy, design: .monospaced))
                             .foregroundStyle(.white)
-                        Text("/ \(repo.drinks.count)")
+                        Text("/ \(brandDrinks.count)")
                             .font(.sbBodyM)
                             .foregroundStyle(.white.opacity(0.7))
                     }
@@ -171,13 +200,16 @@ struct LibraryTabView: View {
     }
 
     private var progressFraction: Double {
-        guard repo.drinks.count > 0 else { return 0 }
-        return Double(unlockedIDs.count) / Double(repo.drinks.count)
+        guard brandDrinks.count > 0 else { return 0 }
+        return Double(brandUnlockedIDs.count) / Double(brandDrinks.count)
     }
 
     private var nextTarget: String {
-        let milestones = [10, 24, 35, 50, 73]
-        let unlocked = unlockedIDs.count
+        let unlocked = brandUnlockedIDs.count
+        let total = brandDrinks.count
+        let milestones = (brand == .starbucks)
+            ? [10, 24, 35, 50, total]
+            : [5, 10, 20, 30, total]
         return milestones.first { $0 > unlocked }.map { "\($0) 款" } ?? "全部！"
     }
 
@@ -236,8 +268,8 @@ struct LibraryTabView: View {
     private func countFor(_ f: LibraryFilter) -> Int? {
         switch f {
         case .all:   return nil
-        case .drunk: return unlockedIDs.count
-        case .new:   return repo.drinks.count - unlockedIDs.count
+        case .drunk: return brandUnlockedIDs.count
+        case .new:   return brandDrinks.count - brandUnlockedIDs.count
         }
     }
 }

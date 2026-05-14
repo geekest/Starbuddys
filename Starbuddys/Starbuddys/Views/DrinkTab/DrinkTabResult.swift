@@ -95,20 +95,23 @@ struct DrinkTabResult: View {
                 DrinkAvatar(drink: drink, size: 92)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    if isFirstTime {
-                        Text("NEW · 第一次喝")
-                            .font(.sbLabel)
-                            .foregroundStyle(Color.sbAmber)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(Color.sbAmberSoft)
-                            .cornerRadius(6)
+                    HStack(spacing: 6) {
+                        BrandBadge(brand: drink.brand)
+                        if isFirstTime {
+                            Text("NEW · 第一次喝")
+                                .font(.sbLabel)
+                                .foregroundStyle(Color.sbAmber)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Color.sbAmberSoft)
+                                .cornerRadius(6)
+                        }
                     }
                     Text(drink.nameCN)
                         .font(.sbTitleM)
                         .foregroundStyle(Color.sbInk)
                         .lineLimit(2)
-                    Text("\(drink.nameEN) · \(drink.category.displayName)")
+                    Text(drink.nameEN.isEmpty ? drink.category.displayName : "\(drink.nameEN) · \(drink.category.displayName)")
                         .font(.sbCaption)
                         .foregroundStyle(Color.sbInk2)
                     Text(drink.description)

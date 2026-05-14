@@ -1,21 +1,75 @@
 import Foundation
 
+enum BrandType: String, Codable, CaseIterable, Hashable {
+    case starbucks = "starbucks"
+    case manner    = "manner"
+
+    var displayName: String {
+        switch self {
+        case .starbucks: return "星巴克"
+        case .manner:    return "Manner"
+        }
+    }
+
+    var shortName: String {
+        switch self {
+        case .starbucks: return "星巴克"
+        case .manner:    return "Manner"
+        }
+    }
+}
+
 enum DrinkCategory: String, Codable, CaseIterable, Hashable {
+    // 星巴克
     case craftedCoffee = "手工调制咖啡"
     case frappuccino   = "星冰乐"
     case tea           = "茶饮"
     case refreshers    = "星巴克生咖 Refreshers"
     case other         = "其他饮品"
 
+    // Manner
+    case mnSeasonal       = "季节新品"
+    case mnTreasure       = "珍藏系列"
+    case mnFruitAmericano = "果味美式"
+    case mnVenti          = "超大杯系列"
+    case mnClassicEspresso = "经典意式"
+    case mnSOE            = "单品豆SOE"
+    case mnMilkCoffee     = "热卖奶咖"
+    case mnOat            = "燕麦系列"
+    case mnNonCoffee      = "无咖啡系列"
+
     var displayName: String { rawValue }
+
+    var brand: BrandType {
+        switch self {
+        case .craftedCoffee, .frappuccino, .tea, .refreshers, .other:
+            return .starbucks
+        case .mnSeasonal, .mnTreasure, .mnFruitAmericano, .mnVenti,
+             .mnClassicEspresso, .mnSOE, .mnMilkCoffee, .mnOat, .mnNonCoffee:
+            return .manner
+        }
+    }
+
+    static func categories(for brand: BrandType) -> [DrinkCategory] {
+        allCases.filter { $0.brand == brand }
+    }
 
     var systemIcon: String {
         switch self {
-        case .craftedCoffee: return "cup.and.saucer.fill"
-        case .frappuccino:   return "snowflake"
-        case .tea:           return "leaf.fill"
-        case .refreshers:    return "bolt.fill"
-        case .other:         return "mug.fill"
+        case .craftedCoffee:     return "cup.and.saucer.fill"
+        case .frappuccino:       return "snowflake"
+        case .tea:               return "leaf.fill"
+        case .refreshers:        return "bolt.fill"
+        case .other:             return "mug.fill"
+        case .mnSeasonal:        return "sparkles"
+        case .mnTreasure:        return "star.fill"
+        case .mnFruitAmericano:  return "drop.fill"
+        case .mnVenti:           return "cup.and.saucer.fill"
+        case .mnClassicEspresso: return "cup.and.saucer.fill"
+        case .mnSOE:             return "leaf.circle.fill"
+        case .mnMilkCoffee:      return "mug.fill"
+        case .mnOat:             return "leaf.fill"
+        case .mnNonCoffee:       return "drop.circle.fill"
         }
     }
 }

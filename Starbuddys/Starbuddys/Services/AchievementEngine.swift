@@ -14,32 +14,40 @@ final class AchievementEngine {
         func inSubCategory(_ sub: String) -> Set<String> {
             Set(drinks.filter { $0.subCategory == sub }.map { $0.id })
         }
+        func inBrand(_ brand: BrandType) -> Set<String> {
+            Set(drinks.filter { $0.brand == brand }.map { $0.id })
+        }
+
+        let starbucksSet = inBrand(.starbucks)
+        let mannerSet    = inBrand(.manner)
+        let starbucksUnlocked = uniqueDrinks.intersection(starbucksSet).count
+        let mannerUnlocked    = uniqueDrinks.intersection(mannerSet).count
 
         let collectionBadges: [Achievement] = [
-            .init(id: "col-10",   group: .collection, name: "初尝者",     desc: "解锁 10 款",
-                  target: 10, progress: uniqueDrinks.count, badgeKind: "starter"),
-            .init(id: "col-24",   group: .collection, name: "半个鉴赏家", desc: "解锁 24 款",
-                  target: 24, progress: uniqueDrinks.count, badgeKind: "half"),
-            .init(id: "col-73",   group: .collection, name: "全饮品达人", desc: "解锁全部 73 款",
-                  target: 73, progress: uniqueDrinks.count, badgeKind: "full"),
-            .init(id: "col-new",  group: .collection, name: "新品先锋",   desc: "当月新品全喝",
-                  target: 3, progress: min(3, uniqueDrinks.count), badgeKind: "starter"),
+            .init(id: "col-sb-10",  group: .collection, name: "星巴克初尝", desc: "解锁星巴克 10 款",
+                  target: 10, progress: starbucksUnlocked, badgeKind: "starter"),
+            .init(id: "col-sb-all", group: .collection, name: "星巴克全鉴", desc: "解锁全部星巴克 \(starbucksSet.count) 款",
+                  target: max(1, starbucksSet.count), progress: starbucksUnlocked, badgeKind: "full"),
+            .init(id: "col-mn-10",  group: .collection, name: "Manner 初尝", desc: "解锁 Manner 10 款",
+                  target: 10, progress: mannerUnlocked, badgeKind: "starter"),
+            .init(id: "col-mn-all", group: .collection, name: "Manner 全鉴", desc: "解锁全部 Manner \(mannerSet.count) 款",
+                  target: max(1, mannerSet.count), progress: mannerUnlocked, badgeKind: "full"),
         ]
 
         let classicSet = inSubCategory("经典咖啡")
         let frapSet    = inCategory(.frappuccino)
-        let teaSet     = inCategory(.tea)
-        let proteinSet = inSubCategory("高蛋白系列")
+        let ventiSet   = inCategory(.mnVenti)
+        let mnClassicSet = inCategory(.mnClassicEspresso)
 
         let typeBadges: [Achievement] = [
-            .init(id: "type-coffee",   group: .typeMaster, name: "经典咖啡通关", desc: "喝过全部经典咖啡",
-                  target: classicSet.count, progress: uniqueDrinks.intersection(classicSet).count, badgeKind: "classicMaster"),
+            .init(id: "type-coffee",   group: .typeMaster, name: "经典咖啡通关", desc: "喝过全部星巴克经典咖啡",
+                  target: max(1, classicSet.count), progress: uniqueDrinks.intersection(classicSet).count, badgeKind: "classicMaster"),
             .init(id: "type-frap",     group: .typeMaster, name: "星冰乐通关",   desc: "喝过全部星冰乐",
-                  target: frapSet.count, progress: uniqueDrinks.intersection(frapSet).count, badgeKind: "frapMaster"),
-            .init(id: "type-tea",      group: .typeMaster, name: "茶饮通关",     desc: "喝过全部茶饮",
-                  target: teaSet.count, progress: uniqueDrinks.intersection(teaSet).count, badgeKind: "teaMaster"),
-            .init(id: "type-protein",  group: .typeMaster, name: "高蛋白挑战",   desc: "喝过全部高蛋白系列",
-                  target: max(1, proteinSet.count), progress: uniqueDrinks.intersection(proteinSet).count, badgeKind: "frapMaster"),
+                  target: max(1, frapSet.count), progress: uniqueDrinks.intersection(frapSet).count, badgeKind: "frapMaster"),
+            .init(id: "type-mn-venti", group: .typeMaster, name: "Manner 超大杯", desc: "喝过全部 Manner 超大杯",
+                  target: max(1, ventiSet.count), progress: uniqueDrinks.intersection(ventiSet).count, badgeKind: "teaMaster"),
+            .init(id: "type-mn-classic", group: .typeMaster, name: "Manner 经典意式", desc: "喝过全部 Manner 经典意式",
+                  target: max(1, mnClassicSet.count), progress: uniqueDrinks.intersection(mnClassicSet).count, badgeKind: "classicMaster"),
         ]
 
         let fanBadges: [Achievement] = [

@@ -1,0 +1,679 @@
+{
+  "version": 1,
+  "drinks": [
+    {
+      "id": "mn_001",
+      "brand": "manner",
+      "nameCN": "海盐芝士风味拿铁",
+      "nameEN": "",
+      "category": "季节新品",
+      "description": "海盐芝士奶盖搭配拿铁，咸甜交融，层次丰富",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_002",
+      "brand": "manner",
+      "nameCN": "咸香芝士拿铁",
+      "nameEN": "",
+      "category": "季节新品",
+      "description": "咸香芝士奶盖搭配拿铁，奶香浓郁",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_003",
+      "brand": "manner",
+      "nameCN": "清香茶拿铁",
+      "nameEN": "",
+      "category": "季节新品",
+      "description": "茶香融合拿铁，清新雅致",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte",
+        "tea"
+      ]
+    },
+    {
+      "id": "mn_004",
+      "brand": "manner",
+      "nameCN": "冰程茶美式",
+      "nameEN": "",
+      "category": "季节新品",
+      "description": "茶与美式咖啡的清爽融合",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "americano",
+        "tea"
+      ]
+    },
+    {
+      "id": "mn_005",
+      "brand": "manner",
+      "nameCN": "冰程GO冰美",
+      "nameEN": "",
+      "category": "季节新品",
+      "description": "GO加量版冰程茶美式",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "cold"
+      ]
+    },
+    {
+      "id": "mn_006",
+      "brand": "manner",
+      "nameCN": "冰程美式",
+      "nameEN": "",
+      "category": "季节新品",
+      "description": "冰程系列经典美式",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_007",
+      "brand": "manner",
+      "nameCN": "热程美式",
+      "nameEN": "",
+      "category": "季节新品",
+      "description": "热版茶程美式",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_008",
+      "brand": "manner",
+      "nameCN": "清橙芝士拿铁",
+      "nameEN": "",
+      "category": "珍藏系列",
+      "description": "鲜橙的酸甜果香恣意涌动，融入浓郁饱满芝士，让舌尖也享受温暖阳光的沐浴",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_009",
+      "brand": "manner",
+      "nameCN": "抹茶芝士拿铁",
+      "nameEN": "",
+      "category": "珍藏系列",
+      "description": "香草与绵密芝士层层包裹浓醇抹茶拿铁，咸甜滑润间茶香与牛奶醇香交织回荡",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte",
+        "tea"
+      ]
+    },
+    {
+      "id": "mn_010",
+      "brand": "manner",
+      "nameCN": "烤坚果拿铁",
+      "nameEN": "",
+      "category": "珍藏系列",
+      "description": "超大杯16oz，浓郁的烘烤坚果香气扑鼻，香醇可可风味包裹浓郁奶香，唇齿留香",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_011",
+      "brand": "manner",
+      "nameCN": "提拉米苏拿铁",
+      "nameEN": "",
+      "category": "珍藏系列",
+      "description": "可可慕斯与芝士的绵密香气层层递进，包裹柔滑牛奶与浓醇咖啡，带来秋冬的馥郁温柔",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_012",
+      "brand": "manner",
+      "nameCN": "黄杏冰美式",
+      "nameEN": "",
+      "category": "果味美式",
+      "description": "黄杏风味冰美式，果香清爽",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_013",
+      "brand": "manner",
+      "nameCN": "荔枝冰美式",
+      "nameEN": "",
+      "category": "果味美式",
+      "description": "荔枝风味冰美式，清甜冰爽",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_014",
+      "brand": "manner",
+      "nameCN": "西番莲美式",
+      "nameEN": "",
+      "category": "果味美式",
+      "description": "百香果风味冰美式，热带果香浓郁",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_015",
+      "brand": "manner",
+      "nameCN": "绿野仙踪",
+      "nameEN": "",
+      "category": "果味美式",
+      "description": "绿色系创意果味冰饮",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "cold"
+      ]
+    },
+    {
+      "id": "mn_016",
+      "brand": "manner",
+      "nameCN": "超大杯桂花芝士拿铁",
+      "nameEN": "",
+      "category": "超大杯系列",
+      "description": "超大杯桂花芝士奶盖拿铁，量大实惠",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_017",
+      "brand": "manner",
+      "nameCN": "超大杯美式",
+      "nameEN": "",
+      "category": "超大杯系列",
+      "description": "超大容量美式咖啡",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_018",
+      "brand": "manner",
+      "nameCN": "香橙风味冰拿铁（超大杯）",
+      "nameEN": "",
+      "category": "超大杯系列",
+      "description": "香橙风味超大杯冰拿铁",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_019",
+      "brand": "manner",
+      "nameCN": "超大杯拿铁",
+      "nameEN": "",
+      "category": "超大杯系列",
+      "description": "超大容量经典拿铁",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_020",
+      "brand": "manner",
+      "nameCN": "超大杯加浓冰水美式",
+      "nameEN": "",
+      "category": "超大杯系列",
+      "description": "超大杯加浓版冰水美式",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_021",
+      "brand": "manner",
+      "nameCN": "拿铁咖啡 Latte",
+      "nameEN": "",
+      "category": "经典意式",
+      "description": "经典意式浓缩搭配细腻奶泡，口感顺滑",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_022",
+      "brand": "manner",
+      "nameCN": "冰拿铁 Iced Latte",
+      "nameEN": "",
+      "category": "经典意式",
+      "description": "冰镇版经典拿铁，清爽顺滑",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_023",
+      "brand": "manner",
+      "nameCN": "美式咖啡 Americano",
+      "nameEN": "",
+      "category": "经典意式",
+      "description": "意式浓缩加水，口感干净，苦中带甘",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_024",
+      "brand": "manner",
+      "nameCN": "冰美式 Iced Americano",
+      "nameEN": "",
+      "category": "经典意式",
+      "description": "冰镇美式，清爽醒神",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "americano"
+      ]
+    },
+    {
+      "id": "mn_025",
+      "brand": "manner",
+      "nameCN": "澳白咖啡 Flat White",
+      "nameEN": "",
+      "category": "经典意式",
+      "description": "双份浓缩搭配绵密奶泡，浓郁醇厚",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "hot"
+      ]
+    },
+    {
+      "id": "mn_026",
+      "brand": "manner",
+      "nameCN": "幸运·洪都拉斯SHG水洗",
+      "nameEN": "",
+      "category": "单品豆SOE",
+      "description": "单品手冲，洪都拉斯产区水洗处理豆，风味清晰明亮",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": []
+    },
+    {
+      "id": "mn_027",
+      "brand": "manner",
+      "nameCN": "冷萃咖啡（每日更换）",
+      "nameEN": "",
+      "category": "单品豆SOE",
+      "description": "每日更换豆种冷萃，口感醇厚",
+      "sizes": {
+        "grande": 30
+      },
+      "imageName": "",
+      "tags": [
+        "cold"
+      ]
+    },
+    {
+      "id": "mn_028",
+      "brand": "manner",
+      "nameCN": "SOE手冲（限门店下单）",
+      "nameEN": "",
+      "category": "单品豆SOE",
+      "description": "单一产地精品手冲，仅支持到店下单",
+      "sizes": {
+        "grande": 30
+      },
+      "imageName": "",
+      "tags": [
+        "hot"
+      ]
+    },
+    {
+      "id": "mn_029",
+      "brand": "manner",
+      "nameCN": "淡海山风味拿铁",
+      "nameEN": "",
+      "category": "热卖奶咖",
+      "description": "融合淡海山风味，清新顺滑",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_030",
+      "brand": "manner",
+      "nameCN": "榄花风味拿铁",
+      "nameEN": "",
+      "category": "热卖奶咖",
+      "description": "橄榄花香风味，独特清雅",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_031",
+      "brand": "manner",
+      "nameCN": "橘皮风味拿铁",
+      "nameEN": "",
+      "category": "热卖奶咖",
+      "description": "橘皮清香融入拿铁，清爽提神",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_032",
+      "brand": "manner",
+      "nameCN": "桂花龙井风味拿铁（超大杯）",
+      "nameEN": "",
+      "category": "热卖奶咖",
+      "description": "桂花与龙井茶香融入拿铁，清雅悠长",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "latte"
+      ]
+    },
+    {
+      "id": "mn_033",
+      "brand": "manner",
+      "nameCN": "卡布奇诺 Cappuccino",
+      "nameEN": "",
+      "category": "热卖奶咖",
+      "description": "浓缩与绵密奶泡的经典组合",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "hot"
+      ]
+    },
+    {
+      "id": "mn_034",
+      "brand": "manner",
+      "nameCN": "摩卡咖啡 Mocha",
+      "nameEN": "",
+      "category": "热卖奶咖",
+      "description": "浓缩加巧克力酱，香醇甜蜜",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "hot"
+      ]
+    },
+    {
+      "id": "mn_035",
+      "brand": "manner",
+      "nameCN": "燕麦拿铁",
+      "nameEN": "",
+      "category": "燕麦系列",
+      "description": "燕麦奶替代牛奶，健康顺滑，适合乳糖不耐人群",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "latte",
+        "oatmilk"
+      ]
+    },
+    {
+      "id": "mn_036",
+      "brand": "manner",
+      "nameCN": "燕麦桂花风味拿铁（超大杯）",
+      "nameEN": "",
+      "category": "燕麦系列",
+      "description": "燕麦奶搭配桂花风味，香甜清雅",
+      "sizes": {
+        "grande": 25
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "latte",
+        "oatmilk"
+      ]
+    },
+    {
+      "id": "mn_037",
+      "brand": "manner",
+      "nameCN": "燕麦奶",
+      "nameEN": "",
+      "category": "燕麦系列",
+      "description": "纯燕麦奶饮品，植物基",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "oatmilk"
+      ]
+    },
+    {
+      "id": "mn_038",
+      "brand": "manner",
+      "nameCN": "黄特饮",
+      "nameEN": "",
+      "category": "无咖啡系列",
+      "description": "黄色系特调饮品，不含咖啡因",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "cold"
+      ]
+    },
+    {
+      "id": "mn_039",
+      "brand": "manner",
+      "nameCN": "冰棒特饮",
+      "nameEN": "",
+      "category": "无咖啡系列",
+      "description": "冰棒造型创意特调，不含咖啡因",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "cold"
+      ]
+    },
+    {
+      "id": "mn_040",
+      "brand": "manner",
+      "nameCN": "冰棒抹茶",
+      "nameEN": "",
+      "category": "无咖啡系列",
+      "description": "冰棒造型抹茶特饮",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "cold",
+        "tea"
+      ]
+    },
+    {
+      "id": "mn_041",
+      "brand": "manner",
+      "nameCN": "抹茶拿铁",
+      "nameEN": "",
+      "category": "无咖啡系列",
+      "description": "抹茶粉融合拿铁，茶香清新",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": [
+        "latte",
+        "tea"
+      ]
+    },
+    {
+      "id": "mn_042",
+      "brand": "manner",
+      "nameCN": "巧克力",
+      "nameEN": "",
+      "category": "无咖啡系列",
+      "description": "醇厚巧克力热饮",
+      "sizes": {
+        "grande": 20
+      },
+      "imageName": "",
+      "tags": [
+        "hot",
+        "chocolate"
+      ]
+    },
+    {
+      "id": "mn_043",
+      "brand": "manner",
+      "nameCN": "牛奶",
+      "nameEN": "",
+      "category": "无咖啡系列",
+      "description": "纯正牛奶",
+      "sizes": {
+        "grande": 15
+      },
+      "imageName": "",
+      "tags": []
+    }
+  ]
+}
