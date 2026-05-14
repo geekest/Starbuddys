@@ -14,11 +14,19 @@ final class CupRecord {
     var drunkAt: Date
     var cupSizeRaw: String
     var temperatureRaw: String
-    var sugarLevelRaw: String
+    var milkTypeRaw: String
+    var espressoTypeRaw: String?
+    var espressoShotsRaw: String?
+    var foamLevelRaw: String?
+    var sweetOptionRaw: String?
+    var sweetPositionRaw: String?
+    var whippedCreamLevelRaw: String?
+    var flavorSyrupsData: Data
+    var sugarLevelRaw: String?
     var shotCount: Int
     var extraShots: Int
-    var milkTypeRaw: String
     var flavorsData: Data
+    var customPrice: Int?
     var rating: Int
     var note: String?
     var photoData: Data?
@@ -31,11 +39,19 @@ final class CupRecord {
         drunkAt: Date = Date(),
         cupSize: CupSize,
         temperature: Temperature,
-        sugarLevel: SugarLevel,
-        shotCount: Int,
-        extraShots: Int = 0,
         milkType: MilkType,
+        espressoType: EspressoType? = nil,
+        espressoShots: Int? = nil,
+        foamLevel: FoamLevel? = nil,
+        sweetOption: SweetOption? = nil,
+        sweetPosition: SweetPosition? = nil,
+        whippedCreamLevel: WhippedCreamLevel? = nil,
+        flavorSyrups: [FlavorSyrup] = [],
+        sugarLevel: SugarLevel? = nil,
+        shotCount: Int = 0,
+        extraShots: Int = 0,
         flavors: [FlavorAddon] = [],
+        customPrice: Int? = nil,
         rating: Int = 4,
         note: String? = nil,
         photoData: Data? = nil,
@@ -47,11 +63,19 @@ final class CupRecord {
         self.drunkAt = drunkAt
         self.cupSizeRaw = cupSize.rawValue
         self.temperatureRaw = temperature.rawValue
-        self.sugarLevelRaw = sugarLevel.rawValue
+        self.milkTypeRaw = milkType.rawValue
+        self.espressoTypeRaw = espressoType?.rawValue
+        self.espressoShotsRaw = espressoShots.map(String.init)
+        self.foamLevelRaw = foamLevel?.rawValue
+        self.sweetOptionRaw = sweetOption?.rawValue
+        self.sweetPositionRaw = sweetPosition?.rawValue
+        self.whippedCreamLevelRaw = whippedCreamLevel?.rawValue
+        self.flavorSyrupsData = (try? JSONEncoder().encode(flavorSyrups)) ?? Data()
+        self.sugarLevelRaw = sugarLevel?.rawValue
         self.shotCount = shotCount
         self.extraShots = extraShots
-        self.milkTypeRaw = milkType.rawValue
         self.flavorsData = (try? JSONEncoder().encode(flavors)) ?? Data()
+        self.customPrice = customPrice
         self.rating = rating
         self.note = note
         self.photoData = photoData
@@ -61,11 +85,18 @@ final class CupRecord {
 
     var cupSize: CupSize { CupSize(rawValue: cupSizeRaw) ?? .grande }
     var temperature: Temperature { Temperature(rawValue: temperatureRaw) ?? .hot }
-    var sugarLevel: SugarLevel { SugarLevel(rawValue: sugarLevelRaw) ?? .standard }
     var milkType: MilkType { MilkType(rawValue: milkTypeRaw) ?? .whole }
+    var espressoType: EspressoType? { espressoTypeRaw.flatMap(EspressoType.init) }
+    var espressoShots: Int? { espressoShotsRaw.flatMap(Int.init) }
+    var foamLevel: FoamLevel? { foamLevelRaw.flatMap(FoamLevel.init) }
+    var sweetOption: SweetOption? { sweetOptionRaw.flatMap(SweetOption.init) }
+    var sweetPosition: SweetPosition? { sweetPositionRaw.flatMap(SweetPosition.init) }
+    var whippedCreamLevel: WhippedCreamLevel? { whippedCreamLevelRaw.flatMap(WhippedCreamLevel.init) }
+    var flavorSyrups: [FlavorSyrup] { (try? JSONDecoder().decode([FlavorSyrup].self, from: flavorSyrupsData)) ?? [] }
+    var sugarLevel: SugarLevel? { sugarLevelRaw.flatMap(SugarLevel.init) }
     var flavors: [FlavorAddon] { (try? JSONDecoder().decode([FlavorAddon].self, from: flavorsData)) ?? [] }
 
     var shortSpec: String {
-        "\(cupSize.displayName) / \(temperature.rawValue) / \(sugarLevel.rawValue)"
+        "\(cupSize.displayName) / \(temperature.rawValue) / \(milkType.rawValue)"
     }
 }

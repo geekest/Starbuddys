@@ -43,10 +43,13 @@ enum CupSize: String, Codable, CaseIterable, Hashable {
 }
 
 enum Temperature: String, Codable, CaseIterable, Hashable {
-    case hot       = "热饮"
-    case iceNormal = "正常冰"
+    case extraHot  = "特别热"
+    case hot       = "热"
+    case warm      = "温热"
+    case iceNormal = "冰"
     case iceLess   = "少冰"
     case iceNone   = "去冰"
+    case veryIce   = "冰冰"
 }
 
 enum SugarLevel: String, Codable, CaseIterable, Hashable {
@@ -58,11 +61,11 @@ enum SugarLevel: String, Codable, CaseIterable, Hashable {
 }
 
 enum MilkType: String, Codable, CaseIterable, Hashable {
-    case whole  = "标准奶"
-    case lowFat = "低脂奶"
-    case oat    = "燕麦奶"
-    case soy    = "豆奶"
-    case none   = "不加奶"
+    case whole    = "全脂牛奶"
+    case almond   = "巴旦木奶"
+    case oat      = "燕麦奶"
+    case lowFat   = "脱脂牛奶"
+    case none     = "无奶"
 }
 
 enum DrinkTag: String, Codable, Hashable {
@@ -87,4 +90,55 @@ enum AchievementGroup: String, CaseIterable, Codable, Hashable {
     case typeMaster = "类型大师"
     case singleFan  = "单品狂热"
     case milestone  = "累计里程碑"
+}
+
+enum EspressoType: String, Codable, CaseIterable, Hashable {
+    case classic     = "经典浓缩(深杯)"
+    case golden      = "金牌浓缩(浅杯)"
+    case single      = "单份浓缩(深杯)"
+
+    var displayName: String { rawValue }
+}
+
+enum FoamLevel: String, Codable, CaseIterable, Hashable {
+    case topFoam     = "杯盖奶泡"
+    case dryFoam     = "奶泡紧干"
+    case lessFoam    = "奶泡紧(亚)"
+
+    var displayName: String { rawValue }
+}
+
+enum SweetOption: String, Codable, CaseIterable, Hashable {
+    case standard    = "经典糖"
+    case zero        = "0甜度糖"
+    case none        = "不另外添加"
+
+    var displayName: String { rawValue }
+}
+
+enum SweetPosition: String, Codable, CaseIterable, Hashable {
+    case standard    = "标准"
+    case more        = "多"
+    case extra       = "更多"
+
+    var displayName: String { rawValue }
+}
+
+enum WhippedCreamLevel: String, Codable, CaseIterable, Hashable {
+    case less        = "加少量搅打标的油"
+    case normal      = "加搅搅打标的油"
+    case none        = "少搅打标的油"
+
+    var displayName: String { rawValue }
+}
+
+enum FlavorSyrup: String, Codable, CaseIterable, Hashable {
+    case vanilla     = "香草风味"
+    case hazelnut    = "榛果风味"
+    case saltCaramel = "海盐焦糖风味"
+    case saltCaramelExtra = "大海盐焦糖风味"
+    case berry       = "莓香风味"
+    case hazelnutExtra = "榛香风味"
+
+    var displayName: String { rawValue }
 }

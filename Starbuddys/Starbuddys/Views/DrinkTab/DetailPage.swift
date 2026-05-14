@@ -22,18 +22,37 @@ struct DetailPage: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
-    // Form state
+    // Form state - Basic
     @State private var selectedSize: CupSize
     @State private var selectedTemp: Temperature
-    @State private var selectedSugar: SugarLevel
+    @State private var selectedMilk: MilkType
+
+    // Form state - Coffee specific
+    @State private var selectedEspresso: EspressoType?
+    @State private var espressoShots: Int?
+    @State private var selectedFoam: FoamLevel?
+
+    // Form state - Sweetness
+    @State private var selectedSweetOption: SweetOption?
+    @State private var selectedSweetPosition: SweetPosition?
+
+    // Form state - Toppings
+    @State private var selectedWhippedCream: WhippedCreamLevel?
+    @State private var selectedFlavorSyrups: [FlavorSyrup] = []
+
+    // Form state - Legacy
+    @State private var selectedSugar: SugarLevel?
     @State private var shotCount: Int
     @State private var extraShots: Int
-    @State private var selectedMilk: MilkType
     @State private var selectedFlavors: [FlavorAddon]
+
+    // Form state - User input
+    @State private var customPrice: String = ""
     @State private var rating: Int
     @State private var note: String
     @State private var showFlavorPicker = false
     @State private var showDiscardAlert = false
+    @State private var showPricePicker = false
 
     init(drink: Drink, prefill: CupRecord?, allRecords: [CupRecord], onSaved: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
         self.drink = drink
@@ -42,16 +61,29 @@ struct DetailPage: View {
         self.onSaved = onSaved
         self.onCancel = onCancel
 
-        let (defSize, defTemp, defSugar) = BrewRecommender.defaultConfig(for: drink)
+        let (defSize, defTemp, _) = BrewRecommender.defaultConfig(for: drink)
         _selectedSize   = State(initialValue: prefill?.cupSize   ?? defSize)
         _selectedTemp   = State(initialValue: prefill?.temperature ?? defTemp)
-        _selectedSugar  = State(initialValue: prefill?.sugarLevel ?? defSugar)
-        _shotCount      = State(initialValue: prefill?.shotCount  ?? 1)
-        _extraShots     = State(initialValue: prefill?.extraShots ?? 0)
         _selectedMilk   = State(initialValue: prefill?.milkType  ?? drink.defaultMilk)
-        _selectedFlavors = State(initialValue: prefill?.flavors  ?? [])
-        _rating         = State(initialValue: prefill?.rating    ?? 4)
-        _note           = State(initialValue: prefill?.note      ?? "")
+
+        _selectedEspresso = State(initialValue: prefill?.espressoType)
+        _espressoShots = State(initialValue: prefill?.espressoShots)
+        _selectedFoam = State(initialValue: prefill?.foamLevel)
+
+        _selectedSweetOption = State(initialValue: prefill?.sweetOption)
+        _selectedSweetPosition = State(initialValue: prefill?.sweetPosition)
+
+        _selectedWhippedCream = State(initialValue: prefill?.whippedCreamLevel)
+        _selectedFlavorSyrups = State(initialValue: prefill?.flavorSyrups ?? [])
+
+        _selectedSugar = State(initialValue: prefill?.sugarLevel)
+        _shotCount = State(initialValue: prefill?.shotCount ?? 1)
+        _extraShots = State(initialValue: prefill?.extraShots ?? 0)
+        _selectedFlavors = State(initialValue: prefill?.flavors ?? [])
+
+        _customPrice = State(initialValue: prefill?.customPrice.map(String.init) ?? "")
+        _rating = State(initialValue: prefill?.rating ?? 4)
+        _note = State(initialValue: prefill?.note ?? "")
     }
 
     private var isFirstTime: Bool {
@@ -59,6 +91,9 @@ struct DetailPage: View {
     }
 
     private var computedPrice: Int {
+        if let custom = Int(customPrice), custom > 0 {
+            return custom
+        }
         let base   = drink.sizePrices[selectedSize] ?? 0
         let extra  = extraShots * 4
         let flavExt = selectedFlavors.reduce(0) { $0 + $1.count * $1.extraPrice }
@@ -97,13 +132,16 @@ struct DetailPage: View {
                     VStack(spacing: 20) {
                         sizeSection
                         tempSection
-                        sugarSection
-                        if drink.isCoffee { shotSection }
+                        if drink.isCoffee { espressoSection }
                         milkSection
-                        flavorSection
+                        if drink.isCoffee { foamSection }
+                        flavorSyrupSection
+                        sweetSection
+                        whippedCreamSection
+                        if drink.isCoffee { shotSection }
+                        priceSection
                         ratingSection
                         noteSection
-                        priceCard
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 100)
@@ -196,6 +234,157 @@ struct DetailPage: View {
         }
     }
 
+    private var espressoSection: some View {
+        formSection("浓缩咖啡") {
+            VStack(spacing: 12) {
+                ChipGroup(
+                    options: EspressoType.allCases.map { ($0.displayName, $0) },
+                    selection: $selectedEspresso
+                )
+
+                if selectedEspresso != nil {
+                    HStack(spacing: 12) {
+                        Text("浓缩份数")
+                            .font(.sbBodyS)
+                            .foregroundStyle(Color.sbInk2)
+                        Stepper(
+                            value: Binding(
+                                get: { espressoShots ?? 1 },
+                                set: { espressoShots = $0 }
+                            ),
+                            in: 1...5,
+                            label: { Text("\(espressoShots ?? 1) 份") }
+                        )
+                        .font(.sbBodyS)
+                    }
+                }
+            }
+        }
+    }
+
+    private var foamSection: some View {
+        formSection("奶泡") {
+            ChipGroup(
+                options: FoamLevel.allCases.map { ($0.displayName, $0) },
+                selection: $selectedFoam
+            )
+        }
+    }
+
+    private var flavorSyrupSection: some View {
+        formSection("无糖风味定制/添加") {
+            VStack(spacing: 8) {
+                if selectedFlavorSyrups.isEmpty {
+                    Text("未选择")
+                        .font(.sbBodyS)
+                        .foregroundStyle(Color.sbInk3)
+                } else {
+                    ForEach(selectedFlavorSyrups, id: \.self) { flavor in
+                        HStack {
+                            Text(flavor.displayName)
+                                .font(.sbBodyS)
+                                .foregroundStyle(Color.sbInk)
+                            Spacer()
+                            Button {
+                                selectedFlavorSyrups.removeAll { $0 == flavor }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(Color.sbInk3)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.sbGreenTint)
+                        .cornerRadius(10)
+                    }
+                }
+
+                Menu {
+                    ForEach(FlavorSyrup.allCases, id: \.self) { flavor in
+                        Button {
+                            if !selectedFlavorSyrups.contains(flavor) {
+                                selectedFlavorSyrups.append(flavor)
+                            }
+                        } label: {
+                            HStack {
+                                Text(flavor.displayName)
+                                if selectedFlavorSyrups.contains(flavor) {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus")
+                        Text("添加风味")
+                    }
+                    .font(.sbBodyS)
+                    .foregroundStyle(Color.sbGreenDeep)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color.sbGreenPale)
+                    .cornerRadius(10)
+                }
+            }
+        }
+    }
+
+    private var sweetSection: some View {
+        formSection("甜度选择") {
+            VStack(spacing: 12) {
+                ChipGroup(
+                    options: SweetOption.allCases.map { ($0.displayName, $0) },
+                    selection: $selectedSweetOption
+                )
+
+                if selectedSweetOption != nil {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("位置")
+                            .font(.sbBodyS)
+                            .foregroundStyle(Color.sbInk2)
+                        ChipGroup(
+                            options: SweetPosition.allCases.map { ($0.displayName, $0) },
+                            selection: $selectedSweetPosition
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private var whippedCreamSection: some View {
+        formSection("鲜奶油") {
+            ChipGroup(
+                options: WhippedCreamLevel.allCases.map { ($0.displayName, $0) },
+                selection: $selectedWhippedCream
+            )
+        }
+    }
+
+    private var priceSection: some View {
+        formSection("价格") {
+            HStack(spacing: 12) {
+                Text("¥")
+                    .font(.sbBodyM)
+                    .foregroundStyle(Color.sbInk2)
+                TextField("自定义价格", text: $customPrice)
+                    .font(.sbBodyM)
+                    .keyboardType(.numberPad)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .background(Color.sbPaper2)
+                    .cornerRadius(8)
+
+                if customPrice.isEmpty {
+                    Text("默认：¥\(computedPrice)")
+                        .font(.sbCaption)
+                        .foregroundStyle(Color.sbInk3)
+                }
+            }
+        }
+    }
+
     private var shotSection: some View {
         formSection("浓缩 Shot") {
             HStack(spacing: 16) {
@@ -254,7 +443,7 @@ struct DetailPage: View {
         }
     }
 
-    private var flavorSection: some View {
+    private var legacyFlavorSection: some View {
         formSection("风味添加") {
             VStack(spacing: 8) {
                 ForEach(selectedFlavors, id: \.name) { f in
@@ -416,11 +605,19 @@ struct DetailPage: View {
             drinkID: drink.id,
             cupSize: selectedSize,
             temperature: selectedTemp,
+            milkType: selectedMilk,
+            espressoType: selectedEspresso,
+            espressoShots: espressoShots,
+            foamLevel: selectedFoam,
+            sweetOption: selectedSweetOption,
+            sweetPosition: selectedSweetPosition,
+            whippedCreamLevel: selectedWhippedCream,
+            flavorSyrups: selectedFlavorSyrups,
             sugarLevel: selectedSugar,
             shotCount: shotCount,
             extraShots: extraShots,
-            milkType: selectedMilk,
             flavors: selectedFlavors,
+            customPrice: customPrice.isEmpty ? nil : Int(customPrice),
             rating: rating,
             note: note.isEmpty ? nil : note,
             computedPrice: computedPrice,
