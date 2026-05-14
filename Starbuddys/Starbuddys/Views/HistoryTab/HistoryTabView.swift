@@ -39,7 +39,7 @@ struct HistoryTabView: View {
 
     // Calendar layout
     private var firstWeekday: Int {
-        var comps = DateComponents(year: displayYear, month: displayMonth, day: 1)
+        let comps = DateComponents(year: displayYear, month: displayMonth, day: 1)
         let cal = Calendar(identifier: .gregorian)
         var adjusted = (cal.date(from: comps).flatMap { cal.component(.weekday, from: $0) } ?? 2) - 2
         if adjusted < 0 { adjusted += 7 }
@@ -340,7 +340,7 @@ struct HistoryTabView: View {
 
     // MARK: Helpers
     private func shiftMonth(_ delta: Int) {
-        var comps = DateComponents(year: displayYear, month: displayMonth + delta)
+        let comps = DateComponents(year: displayYear, month: displayMonth + delta)
         let cal = Calendar.current
         if let date = cal.date(from: comps) {
             let c = cal.dateComponents([.year, .month], from: date)
