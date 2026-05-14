@@ -39,7 +39,7 @@ const App = () => (
       <DCArtboard id="drink-idle"   label="A · 待机"   width={390} height={844}><DrinkTabIdle/></DCArtboard>
       <DCArtboard id="drink-result" label="B · 扭出"   width={390} height={844}><DrinkTabResult/></DCArtboard>
       <DCArtboard id="picker"       label="C · 选饮品弹层" width={390} height={844}><DrinkPicker/></DCArtboard>
-      <DCArtboard id="detail"       label="D · 详情·记一杯" width={390} height={1320}><DetailPage/></DCArtboard>
+      <DCArtboard id="detail"       label="D · 详情·记一杯" width={390} height={2400}><DetailPage/></DCArtboard>
     </DCSection>
 
     <DCSection id="library" title="② 饮品库" subtitle="图鉴式 · 未喝剪影 / 已喝点亮">
