@@ -40,6 +40,10 @@ enum DrinkCategory: String, Codable, CaseIterable, Hashable {
 
     var displayName: String { rawValue }
 
+    var label: String {
+        self == .refreshers ? "生咖" : rawValue
+    }
+
     var brand: BrandType {
         switch self {
         case .craftedCoffee, .frappuccino, .tea, .refreshers, .other:

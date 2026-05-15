@@ -30,17 +30,13 @@ struct DrinkTabResult: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     // Header
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(fortuneText)
-                                .font(.sbBodyM)
-                                .foregroundStyle(Color.sbInk2)
-                            Text("来一杯…")
-                                .font(.sbTitleXL)
-                                .foregroundStyle(Color.sbInk)
-                        }
-                        Spacer()
-                        IconBtn(icon: "bell")
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(fortuneText)
+                            .font(.sbBodyM)
+                            .foregroundStyle(Color.sbInk2)
+                        Text("来一杯…")
+                            .font(.sbTitleXL)
+                            .foregroundStyle(Color.sbInk)
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
@@ -77,7 +73,6 @@ struct DrinkTabResult: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .ignoresSafeArea(edges: .bottom)
         .onAppear { cardVisible = true; dragOffset = 0 }
     }
 

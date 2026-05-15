@@ -9,12 +9,26 @@ private enum LibraryFilter: String, CaseIterable, Hashable {
     var label: String { rawValue }
 }
 
+private enum QuickFilter: Hashable {
+    case subCategory(String)
+    case category(DrinkCategory)
+
+    var label: String {
+        switch self {
+        case .subCategory(let s): return s
+        case .category(let c):
+            return c == .refreshers ? "生咖" : c.displayName
+        }
+    }
+}
+
 struct LibraryTabView: View {
     @EnvironmentObject private var repo: DrinkRepository
     @Query(sort: \CupRecord.drunkAt, order: .reverse) private var records: [CupRecord]
 
     @State private var filter: LibraryFilter = .all
     @State private var brand: BrandType = .starbucks
+    @State private var quickFilter: QuickFilter? = nil
     @State private var searchQuery = ""
     @State private var lockedDrink: Drink? = nil
     @State private var showLockedAlert = false
@@ -49,12 +63,61 @@ struct LibraryTabView: View {
         }
     }
 
-    private var groupedDrinks: [(DrinkCategory, [Drink])] {
-        DrinkCategory.categories(for: brand).compactMap { cat in
-            let drinks = filteredDrinks.filter { $0.category == cat }
-            guard !drinks.isEmpty else { return nil }
-            return (cat, drinks)
+    private var quickFilterOptions: [(label: String, filter: QuickFilter)] {
+        var opts: [(String, QuickFilter)] = []
+        if brand == .starbucks {
+            let subOrder = ["经典咖啡", "浓缩咖啡", "金烘系列", "冰震浓缩", "高蛋白系列", "玫瑰系列", "风味加满"]
+            let crafted = allDrinks.filter { $0.category == .craftedCoffee }
+            for sub in subOrder where crafted.contains(where: { $0.subCategory == sub }) {
+                opts.append((sub, .subCategory(sub)))
+            }
+            for cat in [DrinkCategory.frappuccino, .tea, .refreshers, .other]
+                where allDrinks.contains(where: { $0.category == cat }) {
+                opts.append((cat.label, .category(cat)))
+            }
+        } else {
+            for cat in DrinkCategory.categories(for: brand)
+                where allDrinks.contains(where: { $0.category == cat }) {
+                opts.append((cat.displayName, .category(cat)))
+            }
         }
+        return opts
+    }
+
+    private var sections: [DrinkSection] {
+        switch quickFilter {
+        case .none:
+            return buildSections(from: filteredDrinks)
+        case .some(.category(let cat)):
+            let drinks = filteredDrinks.filter { $0.category == cat }
+            return drinks.isEmpty ? [] : [DrinkSection(id: cat.rawValue, title: cat.label, drinks: drinks)]
+        case .some(.subCategory(let sub)):
+            let drinks = filteredDrinks.filter { $0.category == .craftedCoffee && $0.subCategory == sub }
+            return drinks.isEmpty ? [] : [DrinkSection(id: sub, title: sub, drinks: drinks)]
+        }
+    }
+
+    private func buildSections(from drinks: [Drink]) -> [DrinkSection] {
+        var result: [DrinkSection] = []
+        if brand == .starbucks {
+            let subOrder = ["经典咖啡", "浓缩咖啡", "金烘系列", "冰震浓缩", "高蛋白系列", "玫瑰系列", "风味加满"]
+            for sub in subOrder {
+                let d = drinks.filter { $0.category == .craftedCoffee && $0.subCategory == sub }
+                if !d.isEmpty { result.append(DrinkSection(id: sub, title: sub, drinks: d)) }
+            }
+            let others = drinks.filter { $0.category == .craftedCoffee && $0.subCategory == nil }
+            if !others.isEmpty { result.append(DrinkSection(id: "crafted_other", title: "其他咖啡", drinks: others)) }
+            for cat in [DrinkCategory.frappuccino, .tea, .refreshers, .other] {
+                let d = drinks.filter { $0.category == cat }
+                if !d.isEmpty { result.append(DrinkSection(id: cat.rawValue, title: cat.label, drinks: d)) }
+            }
+        } else {
+            for cat in DrinkCategory.categories(for: brand) {
+                let d = drinks.filter { $0.category == cat }
+                if !d.isEmpty { result.append(DrinkSection(id: cat.rawValue, title: cat.displayName, drinks: d)) }
+            }
+        }
+        return result
     }
 
     var body: some View {
@@ -69,8 +132,6 @@ struct LibraryTabView: View {
                                 .font(.sbTitleXL)
                                 .foregroundStyle(Color.sbInk)
                             Spacer()
-                            IconBtn(icon: "magnifyingglass")
-                            IconBtn(icon: "gearshape")
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 12)
@@ -116,12 +177,32 @@ struct LibraryTabView: View {
                             .padding(.vertical, 4)
                         }
 
+                        // Category quick-filter
+                        if quickFilterOptions.count > 1 {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    PillView(
+                                        title: "全部",
+                                        style: quickFilter == nil ? .soft : .normal
+                                    ) { withAnimation { quickFilter = nil } }
+                                    ForEach(quickFilterOptions, id: \.filter) { opt in
+                                        PillView(
+                                            title: opt.label,
+                                            style: quickFilter == opt.filter ? .soft : .normal
+                                        ) { withAnimation { quickFilter = quickFilter == opt.filter ? nil : opt.filter } }
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 4)
+                            }
+                        }
+
                         // Grouped grid
-                        if filteredDrinks.isEmpty {
+                        if sections.isEmpty {
                             emptyState
                         } else {
-                            ForEach(groupedDrinks, id: \.0) { (cat, drinks) in
-                                categorySection(cat: cat, drinks: drinks)
+                            ForEach(sections) { section in
+                                sectionView(section)
                             }
                         }
                     }
@@ -130,6 +211,7 @@ struct LibraryTabView: View {
                 .scrollIndicators(.hidden)
             }
             .navigationBarHidden(true)
+            .onChange(of: brand) { _, _ in quickFilter = nil }
             .navigationDestination(item: $navToDrink) { drink in
                 DrinkDetailReadOnly(drink: drink, records: records)
             }
@@ -213,14 +295,15 @@ struct LibraryTabView: View {
         return milestones.first { $0 > unlocked }.map { "\($0) 款" } ?? "全部！"
     }
 
-    // MARK: Category section
-    private func categorySection(cat: DrinkCategory, drinks: [Drink]) -> some View {
-        let catUnlocked = drinks.filter { unlockedIDs.contains($0.id) }.count
-        let isComplete = catUnlocked == drinks.count && drinks.count > 0
+    // MARK: Section view
+    @ViewBuilder
+    private func sectionView(_ section: DrinkSection) -> some View {
+        let unlocked = section.drinks.filter { unlockedIDs.contains($0.id) }.count
+        let isComplete = unlocked == section.drinks.count && !section.drinks.isEmpty
 
-        return VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("\(cat.displayName)  ×\(catUnlocked)/\(drinks.count)")
+                Text("\(section.title)  ×\(unlocked)/\(section.drinks.count)")
                     .font(.sbBodyMB)
                     .foregroundStyle(Color.sbInk)
                 Spacer()
@@ -232,8 +315,8 @@ struct LibraryTabView: View {
             }
             .padding(.horizontal, 20)
 
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(drinks) { drink in
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(section.drinks) { drink in
                     let count = drinkCounts[drink.id] ?? 0
                     let locked = count == 0
                     LibraryCellView(drink: drink, count: count, isLocked: locked) {
@@ -274,6 +357,12 @@ struct LibraryTabView: View {
     }
 }
 
+private struct DrinkSection: Identifiable {
+    let id: String
+    let title: String
+    let drinks: [Drink]
+}
+
 private struct LibraryCellView: View {
     let drink: Drink
     let count: Int
@@ -301,6 +390,7 @@ private struct LibraryCellView: View {
                         .foregroundStyle(Color.sbInk3)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .buttonStyle(.plain)
     }

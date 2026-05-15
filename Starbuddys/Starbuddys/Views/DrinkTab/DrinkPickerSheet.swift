@@ -173,18 +173,21 @@ struct DrinkPickerSheet: View {
                     .padding(.top, 40)
                 }
             }
-
-            // Bottom CTA
-            VStack(spacing: 0) {
-                Divider()
-                PrimaryButton(
-                    title: selected != nil ? "选好了 · 下一步 →" : "请先选一款",
-                    disabled: selected == nil
-                ) {
-                    if let d = selected { onSelect(d) }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                // Bottom CTA — pinned above tab bar, never overlaps
+                VStack(spacing: 0) {
+                    Divider()
+                    PrimaryButton(
+                        title: selected != nil ? "选好了 · 下一步 →" : "请先选一款",
+                        disabled: selected == nil
+                    ) {
+                        if let d = selected { onSelect(d) }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .background(Color.sbPaper)
             }
         }
         .background(Color.sbPaper)

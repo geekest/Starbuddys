@@ -50,6 +50,52 @@ final class BrewRecommender {
     }
 
     static func defaultConfig(for drink: Drink) -> (CupSize, Temperature, SugarLevel) {
-        (drink.defaultSize, drink.defaultTemperature, .standard)
+        (recommendSize(for: drink), drink.defaultTemperature, recommendSugar(for: drink))
+    }
+
+    private static func recommendSize(for drink: Drink) -> CupSize {
+        let prices = drink.sizePrices
+        // 美式/纯黑咖啡：中杯更能体现咖啡风味，不被水稀释
+        if drink.tags.contains(.americano) {
+            if prices[.tall] != nil { return .tall }
+        }
+        // 单品SOE：中杯品味更集中
+        if drink.category == .mnSOE {
+            if prices[.tall] != nil { return .tall }
+        }
+        // 茶饮/无咖啡系列：中杯轻盈感更好
+        if drink.category == .tea || drink.category == .mnNonCoffee {
+            if prices[.tall] != nil { return .tall }
+        }
+        return drink.defaultSize
+    }
+
+    private static func recommendSugar(for drink: Drink) -> SugarLevel {
+        // 美式/黑咖啡：无糖，保留咖啡本味
+        if drink.tags.contains(.americano) { return .none }
+
+        // 单品SOE：无糖，品鉴咖啡豆风土
+        if drink.category == .mnSOE { return .none }
+
+        // 标注无额外加糖的产品
+        if drink.tags.contains(.noAddedSugar) { return .none }
+
+        // 抹茶：自带苦味，半糖平衡
+        if drink.tags.contains(.matcha) { return .half }
+
+        // 茶饮系列：清雅，少糖即可
+        if drink.category == .tea || drink.tags.contains(.tea) { return .less }
+
+        // 花香类：细腻风味适合少糖
+        if drink.tags.contains(.floral) { return .less }
+
+        // 拿铁：牛奶本身有甜感，少糖
+        if drink.tags.contains(.latte) { return .less }
+
+        // Manner经典意式（卡布、小白等）：微糖提升层次
+        if drink.category == .mnClassicEspresso { return .micro }
+
+        // 星冰乐/焦糖/巧克力/香草/Refreshers：本身甜度足，标准
+        return .standard
     }
 }

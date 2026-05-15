@@ -35,17 +35,13 @@ struct DrinkTabIdle: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Header
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(greeting.0)
-                            .font(.sbBodyM)
-                            .foregroundStyle(Color.sbInk2)
-                        Text(greeting.1)
-                            .font(.sbTitleXL)
-                            .foregroundStyle(Color.sbInk)
-                    }
-                    Spacer()
-                    IconBtn(icon: "bell")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(greeting.0)
+                        .font(.sbBodyM)
+                        .foregroundStyle(Color.sbInk2)
+                    Text(greeting.1)
+                        .font(.sbTitleXL)
+                        .foregroundStyle(Color.sbInk)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
@@ -77,6 +73,24 @@ struct DrinkTabIdle: View {
                 .padding(.horizontal, 8)
                 .padding(.top, 4)
 
+                // Self-pick CTA
+                Button(action: onPickerOpen) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "hand.tap")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text("我自己选")
+                            .font(.sbBodyL)
+                    }
+                    .foregroundStyle(Color.sbGreenDeep)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.sbGreenPale)
+                    .cornerRadius(14)
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.sbGreenDeep.opacity(0.25), lineWidth: 1))
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+
                 // Last record card
                 Group {
                     if let record = lastRecord, let drink = repo.drink(id: record.drinkID) {
@@ -86,13 +100,8 @@ struct DrinkTabIdle: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
-
-                // Secondary CTA
-                GhostButton(title: "我自己选 →", action: onPickerOpen)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
-                    .padding(.bottom, 24)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
             }
         }
         .scrollIndicators(.hidden)
