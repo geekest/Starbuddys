@@ -1,17 +1,6 @@
 import SwiftUI
 import SwiftData
 
-private let availableFlavors: [FlavorAddon] = [
-    .init(name: "焦糖风味糖浆",  count: 1, extraPrice: 0),
-    .init(name: "香草风味糖浆",  count: 1, extraPrice: 0),
-    .init(name: "榛果风味糖浆",  count: 1, extraPrice: 0),
-    .init(name: "海盐奶盖",      count: 1, extraPrice: 5),
-    .init(name: "淡奶油",        count: 1, extraPrice: 5),
-    .init(name: "巧克力酱",      count: 1, extraPrice: 0),
-    .init(name: "抹茶粉",        count: 1, extraPrice: 5),
-    .init(name: "桂花糖浆",      count: 1, extraPrice: 5),
-]
-
 struct DetailPage: View {
     let drink: Drink
     var prefill: CupRecord?
@@ -21,6 +10,7 @@ struct DetailPage: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var favorites = FavoritesStore.shared
 
     // Form state - Basic
     @State private var selectedSize: CupSize
@@ -29,7 +19,8 @@ struct DetailPage: View {
 
     // Form state - Coffee specific
     @State private var selectedEspresso: EspressoType?
-    @State private var espressoShots: Int?
+    @State private var selectedEspressoStrength: EspressoStrength?
+    @State private var espressoShots: Int
     @State private var selectedFoam: FoamLevel?
 
     // Form state - Sweetness
@@ -40,19 +31,11 @@ struct DetailPage: View {
     @State private var selectedWhippedCream: WhippedCreamLevel?
     @State private var selectedFlavorSyrups: [FlavorSyrup] = []
 
-    // Form state - Legacy
-    @State private var selectedSugar: SugarLevel?
-    @State private var shotCount: Int
-    @State private var extraShots: Int
-    @State private var selectedFlavors: [FlavorAddon]
-
     // Form state - User input
     @State private var customPrice: String = ""
     @State private var rating: Int
     @State private var note: String
-    @State private var showFlavorPicker = false
     @State private var showDiscardAlert = false
-    @State private var showPricePicker = false
 
     init(drink: Drink, prefill: CupRecord?, allRecords: [CupRecord], onSaved: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
         self.drink = drink
@@ -67,7 +50,8 @@ struct DetailPage: View {
         _selectedMilk   = State(initialValue: prefill?.milkType  ?? drink.defaultMilk)
 
         _selectedEspresso = State(initialValue: prefill?.espressoType)
-        _espressoShots = State(initialValue: prefill?.espressoShots)
+        _selectedEspressoStrength = State(initialValue: prefill?.espressoStrength)
+        _espressoShots = State(initialValue: prefill?.espressoShots ?? 2)
         _selectedFoam = State(initialValue: prefill?.foamLevel)
 
         _selectedSweetOption = State(initialValue: prefill?.sweetOption)
@@ -75,11 +59,6 @@ struct DetailPage: View {
 
         _selectedWhippedCream = State(initialValue: prefill?.whippedCreamLevel)
         _selectedFlavorSyrups = State(initialValue: prefill?.flavorSyrups ?? [])
-
-        _selectedSugar = State(initialValue: prefill?.sugarLevel)
-        _shotCount = State(initialValue: prefill?.shotCount ?? 1)
-        _extraShots = State(initialValue: prefill?.extraShots ?? 0)
-        _selectedFlavors = State(initialValue: prefill?.flavors ?? [])
 
         _customPrice = State(initialValue: prefill?.customPrice.map(String.init) ?? "")
         _rating = State(initialValue: prefill?.rating ?? 4)
@@ -94,27 +73,14 @@ struct DetailPage: View {
         if let custom = Int(customPrice), custom > 0 {
             return custom
         }
-        let base   = drink.sizePrices[selectedSize] ?? 0
-        let extra  = extraShots * 4
-        let flavExt = selectedFlavors.reduce(0) { $0 + $1.count * $1.extraPrice }
-        return base + extra + flavExt
-    }
-
-    private var monthlyTotal: Int {
-        let cal = Calendar.current
-        let now = Date()
-        return allRecords
-            .filter {
-                let c = cal.dateComponents([.year,.month], from: $0.drunkAt)
-                let n = cal.dateComponents([.year,.month], from: now)
-                return c.year == n.year && c.month == n.month
-            }
-            .reduce(0) { $0 + $1.computedPrice }
+        let base = drink.sizePrices[selectedSize] ?? drink.sizePrices[drink.defaultSize] ?? 0
+        let extraEspresso = max(0, espressoShots - 2) * 4
+        return base + extraEspresso
     }
 
     private var sizeOptions: [(label: String, sub: String?, value: CupSize, disabled: Bool)] {
         CupSize.allCases.map { size in
-            (label: size.displayName, sub: size.ml, value: size, disabled: drink.sizePrices[size] == nil)
+            (label: size.displayName, sub: size.ml, value: size, disabled: false)
         }
     }
 
@@ -138,7 +104,6 @@ struct DetailPage: View {
                         flavorSyrupSection
                         sweetSection
                         whippedCreamSection
-                        if drink.isCoffee { shotSection }
                         priceSection
                         ratingSection
                         noteSection
@@ -159,13 +124,15 @@ struct DetailPage: View {
                 leftAction: { showDiscardAlert = true },
                 rightContent: AnyView(
                     Button {
-                        // heart / favorite (MVP: UI only)
+                        favorites.toggle(drink.id)
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     } label: {
-                        Image(systemName: "heart")
+                        let isFav = favorites.isFavorite(drink.id)
+                        Image(systemName: isFav ? "heart.fill" : "heart")
                             .font(.system(size: 17))
-                            .foregroundStyle(Color.sbInk1)
+                            .foregroundStyle(isFav ? Color.sbAmber : Color.sbInk1)
                             .frame(width: 36, height: 36)
-                            .background(Color.sbLine.opacity(0.5))
+                            .background(isFav ? Color.sbAmberSoft : Color.sbLine.opacity(0.5))
                             .cornerRadius(12)
                     }
                 )
@@ -175,9 +142,6 @@ struct DetailPage: View {
         .alert("确定放弃这次记录？", isPresented: $showDiscardAlert) {
             Button("放弃", role: .destructive) { onCancel() }
             Button("继续", role: .cancel) { }
-        }
-        .sheet(isPresented: $showFlavorPicker) {
-            flavorPickerSheet
         }
     }
 
@@ -226,39 +190,50 @@ struct DetailPage: View {
         }
     }
 
-    private var sugarSection: some View {
-        formSection("糖度") {
-            ChipGroup(
-                options: SugarLevel.allCases.map { ($0.rawValue, $0) },
-                selection: $selectedSugar
-            )
-        }
-    }
-
     private var espressoSection: some View {
         formSection("浓缩咖啡") {
-            VStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 12) {
                 ChipGroup(
                     options: EspressoType.allCases.map { ($0.displayName, $0) },
                     selection: $selectedEspresso
                 )
 
-                if selectedEspresso != nil {
-                    HStack(spacing: 12) {
-                        Text("浓缩份数")
-                            .font(.sbBodyS)
-                            .foregroundStyle(Color.sbInk2)
-                        Stepper(
-                            value: Binding(
-                                get: { espressoShots ?? 1 },
-                                set: { espressoShots = $0 }
-                            ),
-                            in: 1...5,
-                            label: { Text("\(espressoShots ?? 1) 份") }
-                        )
-                        .font(.sbBodyS)
+                OptionCardGroup(
+                    options: EspressoStrength.allCases.map {
+                        (title: $0.displayName, subtitle: $0.subtitle, value: $0)
+                    },
+                    selection: $selectedEspressoStrength
+                )
+
+                HStack(spacing: 12) {
+                    Text("浓缩份数")
+                        .font(.sbBodyMB)
+                        .foregroundStyle(Color.sbInk1)
+                    Spacer()
+                    Button {
+                        if espressoShots > 1 { espressoShots -= 1 }
+                    } label: {
+                        Image(systemName: "minus.circle")
+                            .font(.system(size: 22))
+                            .foregroundStyle(espressoShots > 1 ? Color.sbGreenDeep : Color.sbInk3)
+                    }
+                    Text("\(espressoShots) 份")
+                        .font(.sbBodyMB)
+                        .monospacedDigit()
+                        .frame(minWidth: 56)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        if espressoShots < 4 { espressoShots += 1 }
+                    } label: {
+                        Image(systemName: "plus.circle")
+                            .font(.system(size: 22))
+                            .foregroundStyle(espressoShots < 4 ? Color.sbGreenDeep : Color.sbInk3)
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(Color.sbGreenPale)
+                .cornerRadius(10)
             }
         }
     }
@@ -273,61 +248,11 @@ struct DetailPage: View {
     }
 
     private var flavorSyrupSection: some View {
-        formSection("无糖风味定制/添加") {
-            VStack(spacing: 8) {
-                if selectedFlavorSyrups.isEmpty {
-                    Text("未选择")
-                        .font(.sbBodyS)
-                        .foregroundStyle(Color.sbInk3)
-                } else {
-                    ForEach(selectedFlavorSyrups, id: \.self) { flavor in
-                        HStack {
-                            Text(flavor.displayName)
-                                .font(.sbBodyS)
-                                .foregroundStyle(Color.sbInk)
-                            Spacer()
-                            Button {
-                                selectedFlavorSyrups.removeAll { $0 == flavor }
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(Color.sbInk3)
-                            }
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.sbGreenTint)
-                        .cornerRadius(10)
-                    }
-                }
-
-                Menu {
-                    ForEach(FlavorSyrup.allCases, id: \.self) { flavor in
-                        Button {
-                            if !selectedFlavorSyrups.contains(flavor) {
-                                selectedFlavorSyrups.append(flavor)
-                            }
-                        } label: {
-                            HStack {
-                                Text(flavor.displayName)
-                                if selectedFlavorSyrups.contains(flavor) {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                        Text("添加风味")
-                    }
-                    .font(.sbBodyS)
-                    .foregroundStyle(Color.sbGreenDeep)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(Color.sbGreenPale)
-                    .cornerRadius(10)
-                }
-            }
+        formSection("无糖风味定制（可多选）") {
+            MultiSelectChipGroup(
+                options: FlavorSyrup.allCases.map { ($0.displayName, $0) },
+                selection: $selectedFlavorSyrups
+            )
         }
     }
 
@@ -386,104 +311,12 @@ struct DetailPage: View {
         }
     }
 
-    private var shotSection: some View {
-        formSection("浓缩 Shot") {
-            HStack(spacing: 16) {
-                Button {
-                    if shotCount > 1 { shotCount -= 1 }
-                } label: {
-                    Image(systemName: "minus")
-                        .font(.system(size: 16, weight: .semibold))
-                        .frame(width: 36, height: 36)
-                        .background(Color.sbLine)
-                        .cornerRadius(10)
-                }
-
-                Text("×\(shotCount + extraShots)")
-                    .font(.sbNumDisplay)
-                    .foregroundStyle(Color.sbInk)
-                    .monospacedDigit()
-                    .frame(minWidth: 44)
-
-                Button { shotCount += 1 } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .semibold))
-                        .frame(width: 36, height: 36)
-                        .background(Color.sbLine)
-                        .cornerRadius(10)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 2) {
-                    HStack(spacing: 4) {
-                        Button {
-                            if extraShots > 0 { extraShots -= 1 }
-                        } label: { Image(systemName: "minus.circle").foregroundStyle(Color.sbInk3) }
-                        Text("+\(extraShots) shot")
-                            .font(.sbCaption)
-                            .foregroundStyle(Color.sbGreenDeep)
-                        Button { extraShots += 1 } label: { Image(systemName: "plus.circle").foregroundStyle(Color.sbGreenDeep) }
-                    }
-                    if extraShots > 0 {
-                        Text("额外 +¥\(extraShots * 4)")
-                            .font(.sbLabel)
-                            .foregroundStyle(Color.sbAmber)
-                    }
-                }
-            }
-        }
-    }
-
     private var milkSection: some View {
         formSection("牛奶") {
             ChipGroup(
                 options: MilkType.allCases.map { ($0.rawValue, $0) },
                 selection: $selectedMilk
             )
-        }
-    }
-
-    private var legacyFlavorSection: some View {
-        formSection("风味添加") {
-            VStack(spacing: 8) {
-                ForEach(selectedFlavors, id: \.name) { f in
-                    HStack {
-                        Text(f.name)
-                            .font(.sbBodyS)
-                            .foregroundStyle(Color.sbInk)
-                        if f.extraPrice > 0 {
-                            Text("+¥\(f.extraPrice)")
-                                .font(.sbLabel)
-                                .foregroundStyle(Color.sbAmber)
-                        }
-                        Spacer()
-                        Button {
-                            selectedFlavors.removeAll { $0.name == f.name }
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(Color.sbInk3)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.sbGreenTint)
-                    .cornerRadius(10)
-                }
-
-                Button { showFlavorPicker = true } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                        Text("添加风味")
-                    }
-                    .font(.sbBodyS)
-                    .foregroundStyle(Color.sbGreenDeep)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(Color.sbGreenPale)
-                    .cornerRadius(10)
-                }
-            }
         }
     }
 
@@ -524,34 +357,6 @@ struct DetailPage: View {
         }
     }
 
-    private var priceCard: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("本杯花费")
-                    .font(.sbLabel)
-                    .foregroundStyle(Color.sbInk2)
-                Text("¥\(computedPrice)")
-                    .font(.sbNumDisplay)
-                    .foregroundStyle(Color.sbGreenDeep)
-                    .monospacedDigit()
-                    .animation(.easeOut(duration: 0.2), value: computedPrice)
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("本月累计")
-                    .font(.sbLabel)
-                    .foregroundStyle(Color.sbInk2)
-                Text("¥\(monthlyTotal + computedPrice)")
-                    .font(.system(size: 18, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(Color.sbInk1)
-                    .monospacedDigit()
-            }
-        }
-        .padding(16)
-        .background(Color.sbGreenPale)
-        .cornerRadius(16)
-    }
-
     // MARK: Bottom bar
     private var bottomBar: some View {
         HStack(spacing: 12) {
@@ -562,39 +367,6 @@ struct DetailPage: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .background(.ultraThinMaterial)
-    }
-
-    // MARK: Flavor picker
-    private var flavorPickerSheet: some View {
-        NavigationStack {
-            List(availableFlavors, id: \.name) { f in
-                Button {
-                    if !selectedFlavors.contains(where: { $0.name == f.name }) {
-                        selectedFlavors.append(f)
-                    }
-                    showFlavorPicker = false
-                } label: {
-                    HStack {
-                        Text(f.name).font(.sbBodyM).foregroundStyle(Color.sbInk)
-                        Spacer()
-                        if f.extraPrice > 0 {
-                            Text("+¥\(f.extraPrice)").font(.sbCaption).foregroundStyle(Color.sbAmber)
-                        }
-                        if selectedFlavors.contains(where: { $0.name == f.name }) {
-                            Image(systemName: "checkmark").foregroundStyle(Color.sbGreenDeep)
-                        }
-                    }
-                }
-            }
-            .navigationTitle("选择风味")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") { showFlavorPicker = false }
-                }
-            }
-        }
-        .presentationDetents([.medium])
     }
 
     // MARK: Save
@@ -608,16 +380,13 @@ struct DetailPage: View {
             temperature: selectedTemp,
             milkType: selectedMilk,
             espressoType: selectedEspresso,
+            espressoStrength: selectedEspressoStrength,
             espressoShots: espressoShots,
             foamLevel: selectedFoam,
             sweetOption: selectedSweetOption,
             sweetPosition: selectedSweetPosition,
             whippedCreamLevel: selectedWhippedCream,
             flavorSyrups: selectedFlavorSyrups,
-            sugarLevel: selectedSugar,
-            shotCount: shotCount,
-            extraShots: extraShots,
-            flavors: selectedFlavors,
             customPrice: customPrice.isEmpty ? nil : Int(customPrice),
             rating: rating,
             note: note.isEmpty ? nil : note,

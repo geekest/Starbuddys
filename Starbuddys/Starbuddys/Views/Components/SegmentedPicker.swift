@@ -51,27 +51,123 @@ struct SBSegmentedPicker<T: Hashable>: View {
 struct ChipGroup<T: Hashable>: View {
     let options: [(label: String, value: T)]
     @Binding var selection: T
+    var columns: Int = 3
 
     var body: some View {
-        FlowLayout(spacing: 8) {
+        let gridItems = Array(repeating: GridItem(.flexible(), spacing: 8), count: columns)
+        LazyVGrid(columns: gridItems, spacing: 8) {
             ForEach(options, id: \.value) { opt in
+                let isSelected = selection == opt.value
                 Button { selection = opt.value } label: {
                     Text(opt.label)
                         .font(.sbBodyS)
-                        .foregroundStyle(selection == opt.value ? Color.sbGreenDeep : Color.sbInk1)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(isSelected ? Color.sbGreenDeep : Color.sbInk1)
+                        .frame(maxWidth: .infinity, minHeight: 20)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 6)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(selection == opt.value ? Color.sbGreenPale : Color.sbCanvas)
+                                .fill(isSelected ? Color.sbGreenPale : Color.sbCanvas)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
                                         .strokeBorder(
-                                            selection == opt.value ? Color.sbGreenDeep : Color.sbLine,
+                                            isSelected ? Color.sbGreenDeep : Color.sbLine,
                                             lineWidth: 1.5
                                         )
                                 )
                         )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+struct MultiSelectChipGroup<T: Hashable>: View {
+    let options: [(label: String, value: T)]
+    @Binding var selection: [T]
+    var columns: Int = 3
+
+    var body: some View {
+        let gridItems = Array(repeating: GridItem(.flexible(), spacing: 8), count: columns)
+        LazyVGrid(columns: gridItems, spacing: 8) {
+            ForEach(options, id: \.value) { opt in
+                let isSelected = selection.contains(opt.value)
+                Button {
+                    if isSelected {
+                        selection.removeAll { $0 == opt.value }
+                    } else {
+                        selection.append(opt.value)
+                    }
+                } label: {
+                    Text(opt.label)
+                        .font(.sbBodyS)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(isSelected ? Color.sbGreenDeep : Color.sbInk1)
+                        .frame(maxWidth: .infinity, minHeight: 20)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(isSelected ? Color.sbGreenPale : Color.sbCanvas)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .strokeBorder(
+                                            isSelected ? Color.sbGreenDeep : Color.sbLine,
+                                            lineWidth: 1.5
+                                        )
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+struct OptionCardGroup<T: Hashable>: View {
+    let options: [(title: String, subtitle: String, value: T)]
+    @Binding var selection: T?
+    var columns: Int = 3
+
+    var body: some View {
+        let gridItems = Array(repeating: GridItem(.flexible(), spacing: 8), count: columns)
+        LazyVGrid(columns: gridItems, spacing: 8) {
+            ForEach(options, id: \.value) { opt in
+                let isSelected = selection == opt.value
+                Button { selection = opt.value } label: {
+                    VStack(spacing: 6) {
+                        Image(systemName: "cup.and.saucer.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(isSelected ? Color.sbGreenDeep : Color.sbInk2)
+                        Text(opt.title)
+                            .font(.sbBodyMB)
+                            .foregroundStyle(isSelected ? Color.sbGreenDeep : Color.sbInk1)
+                        Text(opt.subtitle)
+                            .font(.sbLabel)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(Color.sbInk3)
+                            .lineLimit(2)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(isSelected ? Color.sbGreenPale : Color.sbCanvas)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(
+                                        isSelected ? Color.sbGreenDeep : Color.sbLine,
+                                        lineWidth: 1.5
+                                    )
+                            )
+                    )
                 }
                 .buttonStyle(.plain)
             }

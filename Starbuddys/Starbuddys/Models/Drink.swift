@@ -67,7 +67,14 @@ struct Drink: Identifiable, Codable, Hashable {
     }
 
     var isCoffee: Bool {
-        category == .craftedCoffee
+        switch category {
+        case .craftedCoffee,
+             .mnSeasonal, .mnTreasure, .mnFruitAmericano, .mnVenti,
+             .mnClassicEspresso, .mnSOE, .mnMilkCoffee, .mnOat:
+            return true
+        case .frappuccino, .tea, .refreshers, .other, .mnNonCoffee:
+            return false
+        }
     }
 
     var defaultTemperature: Temperature {

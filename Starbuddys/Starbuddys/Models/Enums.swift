@@ -99,11 +99,11 @@ enum CupSize: String, Codable, CaseIterable, Hashable {
 enum Temperature: String, Codable, CaseIterable, Hashable {
     case extraHot  = "特别热"
     case hot       = "热"
-    case warm      = "温热"
+    case warm      = "微热"
     case iceNormal = "冰"
     case iceLess   = "少冰"
     case iceNone   = "去冰"
-    case veryIce   = "冰冰"
+    case iceFull   = "全冰"
 }
 
 enum SugarLevel: String, Codable, CaseIterable, Hashable {
@@ -147,11 +147,27 @@ enum AchievementGroup: String, CaseIterable, Codable, Hashable {
 }
 
 enum EspressoType: String, Codable, CaseIterable, Hashable {
-    case classic     = "经典浓缩(深杯)"
-    case golden      = "金牌浓缩(浅杯)"
-    case single      = "单份浓缩(深杯)"
+    case classic = "经典浓缩(深烘)"
+    case golden  = "金烘浓缩(浅烘)"
+    case decaf   = "低因浓缩(深烘)"
 
     var displayName: String { rawValue }
+}
+
+enum EspressoStrength: String, Codable, CaseIterable, Hashable {
+    case original = "原萃浓缩"
+    case refined  = "精萃浓缩"
+    case full     = "满萃浓缩"
+
+    var displayName: String { rawValue }
+
+    var subtitle: String {
+        switch self {
+        case .original: return "浓郁醇香，焦糖般甜感"
+        case .refined:  return "精炼萃取，倍感甜郁"
+        case .full:     return "深度萃取，焦香饱满"
+        }
+    }
 }
 
 enum FoamLevel: String, Codable, CaseIterable, Hashable {
@@ -187,12 +203,12 @@ enum WhippedCreamLevel: String, Codable, CaseIterable, Hashable {
 }
 
 enum FlavorSyrup: String, Codable, CaseIterable, Hashable {
-    case vanilla     = "香草风味"
-    case hazelnut    = "榛果风味"
-    case saltCaramel = "海盐焦糖风味"
-    case saltCaramelExtra = "大海盐焦糖风味"
-    case berry       = "莓香风味"
-    case hazelnutExtra = "榛香风味"
+    case vanilla         = "香草风味"
+    case hazelnut        = "榛果风味"
+    case saltCaramel     = "海盐焦糖风味"
+    case tahitianVanilla = "大溪地香草风味"
+    case berry           = "莓莓风味"
+    case pandan          = "糯香斑斓风味"
 
     var displayName: String { rawValue }
 }

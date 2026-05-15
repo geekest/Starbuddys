@@ -16,6 +16,7 @@ final class CupRecord {
     var temperatureRaw: String
     var milkTypeRaw: String
     var espressoTypeRaw: String?
+    var espressoStrengthRaw: String?
     var espressoShotsRaw: String?
     var foamLevelRaw: String?
     var sweetOptionRaw: String?
@@ -41,6 +42,7 @@ final class CupRecord {
         temperature: Temperature,
         milkType: MilkType,
         espressoType: EspressoType? = nil,
+        espressoStrength: EspressoStrength? = nil,
         espressoShots: Int? = nil,
         foamLevel: FoamLevel? = nil,
         sweetOption: SweetOption? = nil,
@@ -65,6 +67,7 @@ final class CupRecord {
         self.temperatureRaw = temperature.rawValue
         self.milkTypeRaw = milkType.rawValue
         self.espressoTypeRaw = espressoType?.rawValue
+        self.espressoStrengthRaw = espressoStrength?.rawValue
         self.espressoShotsRaw = espressoShots.map(String.init)
         self.foamLevelRaw = foamLevel?.rawValue
         self.sweetOptionRaw = sweetOption?.rawValue
@@ -87,6 +90,7 @@ final class CupRecord {
     var temperature: Temperature { Temperature(rawValue: temperatureRaw) ?? .hot }
     var milkType: MilkType { MilkType(rawValue: milkTypeRaw) ?? .whole }
     var espressoType: EspressoType? { espressoTypeRaw.flatMap(EspressoType.init) }
+    var espressoStrength: EspressoStrength? { espressoStrengthRaw.flatMap(EspressoStrength.init) }
     var espressoShots: Int? { espressoShotsRaw.flatMap(Int.init) }
     var foamLevel: FoamLevel? { foamLevelRaw.flatMap(FoamLevel.init) }
     var sweetOption: SweetOption? { sweetOptionRaw.flatMap(SweetOption.init) }
