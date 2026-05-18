@@ -24,9 +24,9 @@ final class BrewRecommender {
             case 5..<11:
                 if drink.tags.contains(.latte) || drink.tags.contains(.americano) { w *= 1.5 }
             case 14..<18:
-                if drink.category == .frappuccino || drink.tags.contains(.cold) { w *= 1.5 }
+                if drink.category.isFrappuccino || drink.tags.contains(.cold) { w *= 1.5 }
             case 18...:
-                if drink.category == .tea || drink.tags.contains(.noAddedSugar) { w *= 1.5 }
+                if drink.category.isTeaDrink || drink.tags.contains(.noAddedSugar) { w *= 1.5 }
             default:
                 break
             }
@@ -64,7 +64,7 @@ final class BrewRecommender {
             if prices[.tall] != nil { return .tall }
         }
         // 茶饮/无咖啡系列：中杯轻盈感更好
-        if drink.category == .tea || drink.category == .mnNonCoffee {
+        if drink.category.isTeaDrink || drink.category == .mnNonCoffee {
             if prices[.tall] != nil { return .tall }
         }
         return drink.defaultSize
@@ -84,7 +84,7 @@ final class BrewRecommender {
         if drink.tags.contains(.matcha) { return .half }
 
         // 茶饮系列：清雅，少糖即可
-        if drink.category == .tea || drink.tags.contains(.tea) { return .less }
+        if drink.category.isTeaDrink || drink.tags.contains(.tea) { return .less }
 
         // 花香类：细腻风味适合少糖
         if drink.tags.contains(.floral) { return .less }

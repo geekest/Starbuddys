@@ -51,7 +51,7 @@ final class DrinkRepository: ObservableObject {
         return drinks.filter {
             $0.nameCN.lowercased().contains(q) ||
             $0.nameEN.lowercased().contains(q) ||
-            ($0.subCategory?.lowercased().contains(q) ?? false)
+            $0.category.rawValue.lowercased().contains(q)
         }
     }
 }

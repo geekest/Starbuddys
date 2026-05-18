@@ -1,12 +1,126 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Calendar cell model
+private enum CalCell: Identifiable {
+    case empty(Int)
+    case day(Int)
+
+    var id: String {
+        switch self {
+        case .empty(let i): return "e\(i)"
+        case .day(let d):   return "d\(d)"
+        }
+    }
+}
+
+// MARK: - Month full list sheet
+struct MonthAllRecordsView: View {
+    let year: Int
+    let month: Int
+    let records: [CupRecord]
+    @EnvironmentObject private var repo: DrinkRepository
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.sbCanvas.ignoresSafeArea()
+                if records.isEmpty {
+                    VStack(spacing: 10) {
+                        Image(systemName: "calendar.badge.minus")
+                            .font(.system(size: 40))
+                            .foregroundStyle(Color.sbInk3)
+                        Text("本月暂无记录")
+                            .font(.sbBodyM)
+                            .foregroundStyle(Color.sbInk2)
+                    }
+                } else {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            ForEach(Array(records.enumerated()), id: \.element.id) { idx, record in
+                                if let drink = repo.drink(id: record.drinkID) {
+                                    recordRow(record: record, drink: drink)
+                                        .padding(.horizontal, 20)
+                                    if idx < records.count - 1 {
+                                        Divider().padding(.leading, 80)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        .background(Color.sbPaper)
+                        .cornerRadius(16)
+                        .shadowSm()
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                    }
+                    .scrollIndicators(.hidden)
+                }
+            }
+            .navigationTitle("\(month) 月全部记录")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("关闭") { dismiss() }
+                        .foregroundStyle(Color.sbGreenDeep)
+                }
+            }
+        }
+    }
+
+    private func recordRow(record: CupRecord, drink: Drink) -> some View {
+        HStack(spacing: 12) {
+            DrinkAvatar(drink: drink, size: 48)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    BrandBadge(brand: drink.brand, size: 9)
+                    Text(record.drunkAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.sbLabel)
+                        .foregroundStyle(Color.sbInk2)
+                }
+                Text(drink.nameCN)
+                    .font(.sbBodyMB)
+                    .foregroundStyle(Color.sbInk)
+                    .lineLimit(1)
+                Text(record.shortSpec)
+                    .font(.sbCaption)
+                    .foregroundStyle(Color.sbInk2)
+                if let note = record.note, !note.isEmpty {
+                    Text("「\(note)」")
+                        .font(.sbCaption)
+                        .foregroundStyle(Color.sbGreenDeep)
+                        .lineLimit(1)
+                }
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("¥\(record.computedPrice)")
+                    .font(.system(size: 14, weight: .bold, design: .monospaced))
+                    .foregroundStyle(Color.sbInk)
+                HStack(spacing: 1) {
+                    ForEach(1...5, id: \.self) { s in
+                        Image(systemName: s <= record.rating ? "star.fill" : "star")
+                            .font(.system(size: 10))
+                            .foregroundStyle(s <= record.rating ? Color.sbAmber : Color.sbLine2)
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 14)
+    }
+}
+
+// MARK: - History tab
 struct HistoryTabView: View {
     @Query(sort: \CupRecord.drunkAt, order: .reverse) private var records: [CupRecord]
     @EnvironmentObject private var repo: DrinkRepository
 
     @State private var displayYear:  Int
     @State private var displayMonth: Int
+    @State private var selectedDay:  Int? = nil
+    @State private var showYearPicker  = false
+    @State private var showAllRecords  = false
 
     init() {
         let c = Calendar.current
@@ -14,6 +128,7 @@ struct HistoryTabView: View {
         _displayMonth = State(initialValue: c.component(.month, from: Date()))
     }
 
+    // MARK: Data helpers
     private var monthRecords: [CupRecord] {
         let cal = Calendar.current
         return records.filter {
@@ -29,103 +144,68 @@ struct HistoryTabView: View {
         }
     }
 
-    private var monthName: String {
-        "\(displayMonth) 月"
+    private var displayedRecords: [CupRecord] {
+        guard let day = selectedDay else { return monthRecords }
+        return recordsByDay[day] ?? []
     }
 
     private var totalSpent: Int { monthRecords.reduce(0) { $0 + $1.computedPrice } }
     private var streak: Int { computeStreak() }
     private var favoriteDrink: (Drink, Int)? { computeFavorite() }
 
-    // Calendar layout
+    private var availableYears: [Int] {
+        let cur = Calendar.current.component(.year, from: Date())
+        return Array(((cur - 4)...cur).reversed())
+    }
+
+    // MARK: Calendar geometry
     private var firstWeekday: Int {
+        var cal = Calendar(identifier: .gregorian)
+        cal.locale = Locale(identifier: "zh_CN")
         let comps = DateComponents(year: displayYear, month: displayMonth, day: 1)
-        let cal = Calendar(identifier: .gregorian)
-        var adjusted = (cal.date(from: comps).flatMap { cal.component(.weekday, from: $0) } ?? 2) - 2
-        if adjusted < 0 { adjusted += 7 }
-        return adjusted
+        guard let date = cal.date(from: comps) else { return 0 }
+        // Sun=1 Mon=2 … Sat=7  →  Mon-first layout offset
+        let wd = cal.component(.weekday, from: date)
+        let offset = (wd - 2 + 7) % 7
+        return offset
     }
 
     private var daysInMonth: Int {
-        let cal = Calendar.current
+        var cal = Calendar(identifier: .gregorian)
+        cal.locale = Locale(identifier: "zh_CN")
         let comps = DateComponents(year: displayYear, month: displayMonth)
-        return cal.range(of: .day, in: .month, for: cal.date(from: comps)!)?.count ?? 30
+        guard let date = cal.date(from: comps),
+              let range = cal.range(of: .day, in: .month, for: date) else { return 30 }
+        return range.count
     }
 
-    private var today: Int {
+    private var todayDay: Int {
         let cal = Calendar.current
         let c = cal.dateComponents([.year, .month, .day], from: Date())
         guard c.year == displayYear && c.month == displayMonth else { return -1 }
         return c.day ?? -1
     }
 
+    private var calendarCells: [CalCell] {
+        var cells: [CalCell] = (0..<firstWeekday).map { .empty($0) }
+        cells += (1...daysInMonth).map { .day($0) }
+        return cells
+    }
+
+    // MARK: Body
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.sbCanvas.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 0) {
-                        // Custom nav header
-                        HStack {
-                            HStack(spacing: 4) {
-                                Text("\(displayYear)")
-                                    .font(.sbBodyMB)
-                                    .foregroundStyle(Color.sbInk1)
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(Color.sbInk2)
-                            }
-                            Spacer()
-                            Text("历史")
-                                .font(.sbTitleS)
-                                .foregroundStyle(Color.sbInk)
-                            Spacer()
-                            IconBtn(icon: "square.and.arrow.up")
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-
-                        // Month nav
-                        HStack {
-                            Button { shiftMonth(-1) } label: {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundStyle(Color.sbInk1)
-                                    .frame(width: 36, height: 36)
-                            }
-                            Spacer()
-                            Text(monthName)
-                                .font(.sbTitleM)
-                                .foregroundStyle(Color.sbInk)
-                            Spacer()
-                            Button { shiftMonth(1) } label: {
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundStyle(Color.sbInk1)
-                                    .frame(width: 36, height: 36)
-                            }
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 8)
-
-                        // Weekday row
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 0) {
-                            ForEach(["一","二","三","四","五","六","日"], id: \.self) { d in
-                                Text(d)
-                                    .font(.sbLabel)
-                                    .foregroundStyle(Color.sbInk3)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 6)
-                            }
-                        }
-                        .padding(.horizontal, 16)
-
-                        // Calendar grid
+                        navHeader
+                        monthNav
+                        weekdayRow
                         calendarGrid
                             .padding(.horizontal, 16)
                             .padding(.bottom, 16)
 
-                        // Summary cards
                         if !monthRecords.isEmpty {
                             summaryCards.padding(.horizontal, 20)
                             if let (drink, count) = favoriteDrink {
@@ -133,15 +213,11 @@ struct HistoryTabView: View {
                                     .padding(.horizontal, 20)
                                     .padding(.top, 12)
                             }
-                        } else {
-                            emptyState
-                        }
-
-                        // Detail list
-                        if !monthRecords.isEmpty {
                             detailList
                                 .padding(.horizontal, 20)
                                 .padding(.top, 16)
+                        } else {
+                            emptyState
                         }
                     }
                     .padding(.bottom, 24)
@@ -149,51 +225,172 @@ struct HistoryTabView: View {
                 .scrollIndicators(.hidden)
             }
             .navigationBarHidden(true)
+            .sheet(isPresented: $showYearPicker) { yearPickerSheet }
+            .sheet(isPresented: $showAllRecords) {
+                MonthAllRecordsView(year: displayYear, month: displayMonth, records: monthRecords)
+                    .environmentObject(repo)
+            }
         }
+    }
+
+    // MARK: Nav header
+    private var navHeader: some View {
+        HStack {
+            Button { showYearPicker = true } label: {
+                HStack(spacing: 4) {
+                    Text(verbatim: "\(displayYear)")
+                        .font(.sbBodyMB)
+                        .foregroundStyle(Color.sbInk1)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.sbInk2)
+                        .rotationEffect(showYearPicker ? .degrees(180) : .zero)
+                        .animation(.easeInOut(duration: 0.2), value: showYearPicker)
+                }
+            }
+            Spacer()
+            Text("历史")
+                .font(.sbTitleS)
+                .foregroundStyle(Color.sbInk)
+            Spacer()
+            Color.clear.frame(width: 36, height: 36)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+    }
+
+    // MARK: Month nav
+    private var monthNav: some View {
+        HStack {
+            Button { shiftMonth(-1) } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.sbInk1)
+                    .frame(width: 36, height: 36)
+            }
+            Spacer()
+            Text("\(displayMonth) 月")
+                .font(.sbTitleM)
+                .foregroundStyle(Color.sbInk)
+            Spacer()
+            Button { shiftMonth(1) } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.sbInk1)
+                    .frame(width: 36, height: 36)
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 8)
+    }
+
+    // MARK: Weekday row
+    private var weekdayRow: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 0) {
+            ForEach(["一","二","三","四","五","六","日"], id: \.self) { d in
+                Text(d)
+                    .font(.sbLabel)
+                    .foregroundStyle(Color.sbInk3)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+            }
+        }
+        .padding(.horizontal, 16)
     }
 
     // MARK: Calendar grid
     private var calendarGrid: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 2) {
-            // Empty cells for offset
-            ForEach(0..<firstWeekday, id: \.self) { _ in Color.clear.aspectRatio(1, contentMode: .fill) }
+            ForEach(calendarCells) { cell in
+                switch cell {
+                case .empty:
+                    Color.clear
+                        .aspectRatio(1, contentMode: .fill)
+                case .day(let day):
+                    dayCell(day)
+                }
+            }
+        }
+    }
 
-            // Day cells
-            ForEach(1...daysInMonth, id: \.self) { day in
-                let dayRecords = recordsByDay[day] ?? []
-                let isToday = day == today
-                VStack(spacing: 2) {
-                    ZStack {
-                        Circle()
-                            .fill(isToday ? Color.sbGreenDeep : .clear)
-                            .frame(width: 30, height: 30)
-                        Text("\(day)")
-                            .font(.system(size: 13, weight: isToday ? .heavy : (dayRecords.isEmpty ? .regular : .bold),
-                                          design: .monospaced))
-                            .foregroundStyle(isToday ? .white : (dayRecords.isEmpty ? Color.sbInk3 : Color.sbInk))
+    private func dayCell(_ day: Int) -> some View {
+        let dayRecords = recordsByDay[day] ?? []
+        let isToday    = day == todayDay
+        let isSelected = day == selectedDay
+
+        return VStack(spacing: 2) {
+            ZStack {
+                if isToday {
+                    Circle().fill(Color.sbGreenDeep).frame(width: 30, height: 30)
+                } else if isSelected {
+                    Circle().fill(Color.sbGreenDeep.opacity(0.12)).frame(width: 30, height: 30)
+                    Circle().strokeBorder(Color.sbGreenDeep, lineWidth: 1.5).frame(width: 30, height: 30)
+                }
+                Text(verbatim: "\(day)")
+                    .font(.system(
+                        size: 13,
+                        weight: (isToday || isSelected) ? .heavy : (dayRecords.isEmpty ? .regular : .bold),
+                        design: .monospaced
+                    ))
+                    .foregroundStyle(isToday ? .white : (dayRecords.isEmpty ? Color.sbInk3 : Color.sbInk))
+            }
+            if !dayRecords.isEmpty {
+                HStack(spacing: -6) {
+                    ForEach(Array(dayRecords.prefix(2).enumerated()), id: \.0) { idx, r in
+                        if let drink = repo.drink(id: r.drinkID) {
+                            DrinkAvatar(drink: drink, size: 18)
+                                .overlay(Circle().strokeBorder(.white, lineWidth: 1))
+                                .zIndex(Double(2 - idx))
+                        }
                     }
+                    if dayRecords.count > 2 {
+                        Text("+\(dayRecords.count - 2)")
+                            .font(.system(size: 7))
+                            .foregroundStyle(Color.sbInk3)
+                    }
+                }
+            }
+        }
+        .aspectRatio(1, contentMode: .fill)
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                selectedDay = (selectedDay == day) ? nil : day
+            }
+        }
+    }
 
-                    if !dayRecords.isEmpty {
-                        HStack(spacing: -6) {
-                            ForEach(Array(dayRecords.prefix(2).enumerated()), id: \.0) { idx, r in
-                                if let drink = repo.drink(id: r.drinkID) {
-                                    DrinkAvatar(drink: drink, size: 18)
-                                        .overlay(Circle().strokeBorder(.white, lineWidth: 1))
-                                        .zIndex(Double(2 - idx))
-                                }
-                            }
-                            if dayRecords.count > 2 {
-                                Text("+\(dayRecords.count - 2)")
-                                    .font(.system(size: 7))
-                                    .foregroundStyle(Color.sbInk3)
-                            }
+    // MARK: Year picker sheet
+    private var yearPickerSheet: some View {
+        NavigationStack {
+            List(availableYears, id: \.self) { year in
+                Button {
+                    displayYear  = year
+                    selectedDay  = nil
+                    showYearPicker = false
+                } label: {
+                    HStack {
+                        Text(verbatim: "\(year) 年")
+                            .foregroundStyle(Color.sbInk)
+                        Spacer()
+                        if year == displayYear {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(Color.sbGreenDeep)
                         }
                     }
                 }
-                .aspectRatio(1, contentMode: .fill)
-                .padding(.vertical, 4)
+            }
+            .navigationTitle("选择年份")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("关闭") { showYearPicker = false }
+                        .foregroundStyle(Color.sbGreenDeep)
+                }
             }
         }
+        .presentationDetents([.fraction(0.42)])
     }
 
     // MARK: Summary cards
@@ -248,32 +445,56 @@ struct HistoryTabView: View {
     private var detailList: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("明细")
-                    .font(.sbBodyMB)
-                    .foregroundStyle(Color.sbInk)
-                Spacer()
-                Text("按时间倒序")
-                    .font(.sbCaption)
-                    .foregroundStyle(Color.sbInk3)
+                if let day = selectedDay {
+                    Text("\(displayMonth) 月 \(day) 日")
+                        .font(.sbBodyMB)
+                        .foregroundStyle(Color.sbInk)
+                    Spacer()
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) { selectedDay = nil }
+                    } label: {
+                        Text("查看全月")
+                            .font(.sbCaption)
+                            .foregroundStyle(Color.sbGreenDeep)
+                    }
+                } else {
+                    Text("明细")
+                        .font(.sbBodyMB)
+                        .foregroundStyle(Color.sbInk)
+                    Spacer()
+                    Text("按时间倒序")
+                        .font(.sbCaption)
+                        .foregroundStyle(Color.sbInk3)
+                }
             }
             .padding(.bottom, 8)
 
-            let shown = Array(monthRecords.prefix(5))
-            ForEach(Array(shown.enumerated()), id: \.element.id) { idx, record in
-                if let drink = repo.drink(id: record.drinkID) {
-                    recordRow(record: record, drink: drink)
-                    if idx < shown.count - 1 {
-                        Divider().padding(.leading, 60)
-                    }
-                }
-            }
-
-            if monthRecords.count > 5 {
-                Text("查看 \(displayMonth) 月全部 \(monthRecords.count) 条 →")
+            let toShow = displayedRecords
+            if toShow.isEmpty {
+                Text("当日暂无记录")
                     .font(.sbCaption)
                     .foregroundStyle(Color.sbInk3)
                     .frame(maxWidth: .infinity)
-                    .padding(.top, 14)
+                    .padding(.vertical, 20)
+            } else {
+                let shown = Array(toShow.prefix(5))
+                ForEach(Array(shown.enumerated()), id: \.element.id) { idx, record in
+                    if let drink = repo.drink(id: record.drinkID) {
+                        recordRow(record: record, drink: drink)
+                        if idx < shown.count - 1 {
+                            Divider().padding(.leading, 60)
+                        }
+                    }
+                }
+                if toShow.count > 5 {
+                    Button { showAllRecords = true } label: {
+                        Text("查看 \(displayMonth) 月全部 \(toShow.count) 条 →")
+                            .font(.sbCaption)
+                            .foregroundStyle(Color.sbInk3)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 14)
+                    }
+                }
             }
         }
         .padding(14)
@@ -285,7 +506,6 @@ struct HistoryTabView: View {
     private func recordRow(record: CupRecord, drink: Drink) -> some View {
         HStack(spacing: 12) {
             DrinkAvatar(drink: drink, size: 48)
-
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     BrandBadge(brand: drink.brand, size: 9)
@@ -307,9 +527,7 @@ struct HistoryTabView: View {
                         .lineLimit(1)
                 }
             }
-
             Spacer()
-
             VStack(alignment: .trailing, spacing: 2) {
                 Text("¥\(record.computedPrice)")
                     .font(.system(size: 14, weight: .bold, design: .monospaced))
@@ -326,6 +544,7 @@ struct HistoryTabView: View {
         .padding(.vertical, 14)
     }
 
+    // MARK: Empty state
     private var emptyState: some View {
         VStack(spacing: 10) {
             Image(systemName: "calendar.badge.minus")
@@ -349,6 +568,7 @@ struct HistoryTabView: View {
             let c = cal.dateComponents([.year, .month], from: date)
             displayYear  = c.year  ?? displayYear
             displayMonth = c.month ?? displayMonth
+            selectedDay  = nil
         }
     }
 
@@ -356,7 +576,7 @@ struct HistoryTabView: View {
         var s = 0
         let cal = Calendar.current
         let days = Set(monthRecords.map { cal.component(.day, from: $0.drunkAt) })
-        var d = today > 0 ? today : daysInMonth
+        var d = todayDay > 0 ? todayDay : daysInMonth
         while days.contains(d) { s += 1; d -= 1 }
         return s
     }

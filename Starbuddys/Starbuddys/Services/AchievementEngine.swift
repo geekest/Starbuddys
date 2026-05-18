@@ -11,8 +11,8 @@ final class AchievementEngine {
         func inCategory(_ cat: DrinkCategory) -> Set<String> {
             Set(drinks.filter { $0.category == cat }.map { $0.id })
         }
-        func inSubCategory(_ sub: String) -> Set<String> {
-            Set(drinks.filter { $0.subCategory == sub }.map { $0.id })
+        func inCategories(_ cats: DrinkCategory...) -> Set<String> {
+            Set(drinks.filter { cats.contains($0.category) }.map { $0.id })
         }
         func inBrand(_ brand: BrandType) -> Set<String> {
             Set(drinks.filter { $0.brand == brand }.map { $0.id })
@@ -34,9 +34,9 @@ final class AchievementEngine {
                   target: max(1, mannerSet.count), progress: mannerUnlocked, badgeKind: "full"),
         ]
 
-        let classicSet = inSubCategory("经典咖啡")
-        let frapSet    = inCategory(.frappuccino)
-        let ventiSet   = inCategory(.mnVenti)
+        let classicSet   = inCategory(.sbClassicCoffee)
+        let frapSet      = inCategories(.sbFrappTea, .sbFrappCoffee, .sbFrappFruit)
+        let ventiSet     = inCategory(.mnVenti)
         let mnClassicSet = inCategory(.mnClassicEspresso)
 
         let typeBadges: [Achievement] = [

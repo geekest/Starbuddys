@@ -20,33 +20,43 @@ enum BrandType: String, Codable, CaseIterable, Hashable {
 }
 
 enum DrinkCategory: String, Codable, CaseIterable, Hashable {
-    // 星巴克
-    case craftedCoffee = "手工调制咖啡"
-    case frappuccino   = "星冰乐"
-    case tea           = "茶饮"
-    case refreshers    = "星巴克生咖 Refreshers"
-    case other         = "其他饮品"
+    // 星巴克（按菜单顺序）
+    case sbHighProtein    = "高蛋白系列"
+    case sbRose           = "玫瑰系列"
+    case sbClassicCoffee  = "经典咖啡"
+    case sbPlantCoffee    = "植物基咖啡"
+    case sbYuanyang       = "鸳鸯系列"
+    case sbColdBrew       = "冷萃冰咖啡"
+    case sbGoldRoast      = "金烘浓缩"
+    case sbShakenEspresso = "星巴克冰震浓缩"
+    case sbPourOver       = "冲煮咖啡"
+    case sbFrappTea       = "星冰乐/茶系列"
+    case sbFrappCoffee    = "星冰乐/咖啡系列"
+    case sbFrappFruit     = "星冰乐/果汁系列"
+    case sbTeaLatte       = "茶拿铁"
+    case sbShakenTea      = "冰摇茶"
+    case sbOther          = "其他饮品"
+    case sbRefreshers     = "星巴克生咖"
 
     // Manner
-    case mnSeasonal       = "季节新品"
-    case mnTreasure       = "珍藏系列"
-    case mnFruitAmericano = "果味美式"
-    case mnVenti          = "超大杯系列"
+    case mnSeasonal        = "季节新品"
+    case mnTreasure        = "珍藏系列"
+    case mnFruitAmericano  = "果味美式"
+    case mnVenti           = "超大杯系列"
     case mnClassicEspresso = "经典意式"
-    case mnSOE            = "单品豆SOE"
-    case mnMilkCoffee     = "热卖奶咖"
-    case mnOat            = "燕麦系列"
-    case mnNonCoffee      = "无咖啡系列"
+    case mnSOE             = "单品豆SOE"
+    case mnMilkCoffee      = "热卖奶咖"
+    case mnOat             = "燕麦系列"
+    case mnNonCoffee       = "无咖啡系列"
 
     var displayName: String { rawValue }
 
-    var label: String {
-        self == .refreshers ? "生咖" : rawValue
-    }
-
     var brand: BrandType {
         switch self {
-        case .craftedCoffee, .frappuccino, .tea, .refreshers, .other:
+        case .sbHighProtein, .sbRose, .sbClassicCoffee, .sbPlantCoffee,
+             .sbYuanyang, .sbColdBrew, .sbGoldRoast, .sbShakenEspresso,
+             .sbPourOver, .sbFrappTea, .sbFrappCoffee, .sbFrappFruit,
+             .sbTeaLatte, .sbShakenTea, .sbOther, .sbRefreshers:
             return .starbucks
         case .mnSeasonal, .mnTreasure, .mnFruitAmericano, .mnVenti,
              .mnClassicEspresso, .mnSOE, .mnMilkCoffee, .mnOat, .mnNonCoffee:
@@ -58,13 +68,34 @@ enum DrinkCategory: String, Codable, CaseIterable, Hashable {
         allCases.filter { $0.brand == brand }
     }
 
+    /// 是否属于星冰乐大类
+    var isFrappuccino: Bool {
+        self == .sbFrappTea || self == .sbFrappCoffee || self == .sbFrappFruit
+    }
+
+    /// 是否属于茶饮大类（不含茶星冰乐）
+    var isTeaDrink: Bool {
+        self == .sbTeaLatte || self == .sbShakenTea
+    }
+
     var systemIcon: String {
         switch self {
-        case .craftedCoffee:     return "cup.and.saucer.fill"
-        case .frappuccino:       return "snowflake"
-        case .tea:               return "leaf.fill"
-        case .refreshers:        return "bolt.fill"
-        case .other:             return "mug.fill"
+        case .sbHighProtein:    return "bolt.heart.fill"
+        case .sbRose:           return "sparkles"
+        case .sbClassicCoffee:  return "cup.and.saucer.fill"
+        case .sbPlantCoffee:    return "leaf.fill"
+        case .sbYuanyang:       return "cup.and.saucer.fill"
+        case .sbColdBrew:       return "snowflake"
+        case .sbGoldRoast:      return "sun.max.fill"
+        case .sbShakenEspresso: return "wind"
+        case .sbPourOver:       return "drop.fill"
+        case .sbFrappTea:       return "snowflake"
+        case .sbFrappCoffee:    return "snowflake"
+        case .sbFrappFruit:     return "snowflake"
+        case .sbTeaLatte:       return "leaf.fill"
+        case .sbShakenTea:      return "leaf.circle.fill"
+        case .sbOther:          return "mug.fill"
+        case .sbRefreshers:     return "bolt.fill"
         case .mnSeasonal:        return "sparkles"
         case .mnTreasure:        return "star.fill"
         case .mnFruitAmericano:  return "drop.fill"

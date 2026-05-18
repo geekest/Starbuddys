@@ -10,14 +10,11 @@ private enum LibraryFilter: String, CaseIterable, Hashable {
 }
 
 private enum QuickFilter: Hashable {
-    case subCategory(String)
     case category(DrinkCategory)
 
     var label: String {
         switch self {
-        case .subCategory(let s): return s
-        case .category(let c):
-            return c == .refreshers ? "生咖" : c.displayName
+        case .category(let c): return c.displayName
         }
     }
 }
@@ -64,24 +61,9 @@ struct LibraryTabView: View {
     }
 
     private var quickFilterOptions: [(label: String, filter: QuickFilter)] {
-        var opts: [(String, QuickFilter)] = []
-        if brand == .starbucks {
-            let subOrder = ["经典咖啡", "浓缩咖啡", "金烘系列", "冰震浓缩", "高蛋白系列", "玫瑰系列", "风味加满"]
-            let crafted = allDrinks.filter { $0.category == .craftedCoffee }
-            for sub in subOrder where crafted.contains(where: { $0.subCategory == sub }) {
-                opts.append((sub, .subCategory(sub)))
-            }
-            for cat in [DrinkCategory.frappuccino, .tea, .refreshers, .other]
-                where allDrinks.contains(where: { $0.category == cat }) {
-                opts.append((cat.label, .category(cat)))
-            }
-        } else {
-            for cat in DrinkCategory.categories(for: brand)
-                where allDrinks.contains(where: { $0.category == cat }) {
-                opts.append((cat.displayName, .category(cat)))
-            }
-        }
-        return opts
+        DrinkCategory.categories(for: brand)
+            .filter { cat in allDrinks.contains(where: { $0.category == cat }) }
+            .map { ($0.displayName, .category($0)) }
     }
 
     private var sections: [DrinkSection] {
@@ -90,34 +72,16 @@ struct LibraryTabView: View {
             return buildSections(from: filteredDrinks)
         case .some(.category(let cat)):
             let drinks = filteredDrinks.filter { $0.category == cat }
-            return drinks.isEmpty ? [] : [DrinkSection(id: cat.rawValue, title: cat.label, drinks: drinks)]
-        case .some(.subCategory(let sub)):
-            let drinks = filteredDrinks.filter { $0.category == .craftedCoffee && $0.subCategory == sub }
-            return drinks.isEmpty ? [] : [DrinkSection(id: sub, title: sub, drinks: drinks)]
+            return drinks.isEmpty ? [] : [DrinkSection(id: cat.rawValue, title: cat.displayName, drinks: drinks)]
         }
     }
 
     private func buildSections(from drinks: [Drink]) -> [DrinkSection] {
-        var result: [DrinkSection] = []
-        if brand == .starbucks {
-            let subOrder = ["经典咖啡", "浓缩咖啡", "金烘系列", "冰震浓缩", "高蛋白系列", "玫瑰系列", "风味加满"]
-            for sub in subOrder {
-                let d = drinks.filter { $0.category == .craftedCoffee && $0.subCategory == sub }
-                if !d.isEmpty { result.append(DrinkSection(id: sub, title: sub, drinks: d)) }
-            }
-            let others = drinks.filter { $0.category == .craftedCoffee && $0.subCategory == nil }
-            if !others.isEmpty { result.append(DrinkSection(id: "crafted_other", title: "其他咖啡", drinks: others)) }
-            for cat in [DrinkCategory.frappuccino, .tea, .refreshers, .other] {
-                let d = drinks.filter { $0.category == cat }
-                if !d.isEmpty { result.append(DrinkSection(id: cat.rawValue, title: cat.label, drinks: d)) }
-            }
-        } else {
-            for cat in DrinkCategory.categories(for: brand) {
-                let d = drinks.filter { $0.category == cat }
-                if !d.isEmpty { result.append(DrinkSection(id: cat.rawValue, title: cat.displayName, drinks: d)) }
-            }
+        DrinkCategory.categories(for: brand).compactMap { cat in
+            let d = drinks.filter { $0.category == cat }
+            guard !d.isEmpty else { return nil }
+            return DrinkSection(id: cat.rawValue, title: cat.displayName, drinks: d)
         }
-        return result
     }
 
     var body: some View {
