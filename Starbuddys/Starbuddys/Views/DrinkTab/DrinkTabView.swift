@@ -23,8 +23,7 @@ struct DrinkTabView: View {
             ZStack {
                 Color.sbCanvas.ignoresSafeArea()
 
-                switch tabState {
-                case .idle:
+                if case .idle = tabState {
                     DrinkTabIdle(
                         records: records,
                         isBrewing: isBrewing,
@@ -37,18 +36,19 @@ struct DrinkTabView: View {
                             }
                         }
                     )
-
-                case .result(let drink):
+                    .transition(.opacity)
+                } else if case .result(let drink) = tabState {
                     DrinkTabResult(
                         drink: drink,
                         records: records,
-                        onClose: { withAnimation(.spring()) { tabState = .idle } },
+                        onClose: { withAnimation(.easeInOut(duration: 0.3)) { tabState = .idle } },
                         onRefresh: brewAction,
                         onRecord: {
                             detailDrink = drink
                             prefillRecord = nil
                         }
                     )
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
                 // Toast
@@ -99,7 +99,7 @@ struct DrinkTabView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             isBrewing = false
             if let drink = BrewRecommender.recommend(from: repo.drinks, records: records) {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
+                withAnimation(.easeInOut(duration: 0.35)) {
                     tabState = .result(drink)
                 }
             }

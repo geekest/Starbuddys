@@ -9,6 +9,7 @@ struct DrinkTabResult: View {
 
     @State private var dragOffset: CGFloat = 0
     @State private var cardVisible = true
+    @State private var isRefreshing = false
 
     private var isFirstTime: Bool {
         !records.contains { $0.drinkID == drink.id }
@@ -26,7 +27,7 @@ struct DrinkTabResult: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Dimmed brewing machine
+            // Dimmed brewing machine — tap outside card to close
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     // Header
@@ -53,17 +54,21 @@ struct DrinkTabResult: View {
                 }
             }
             .scrollDisabled(true)
+            .contentShape(Rectangle())
+            .onTapGesture { onClose() }
 
             // Result card
             if cardVisible {
                 recommendCard
                     .offset(y: max(0, dragOffset))
+                    .contentShape(Rectangle())
+                    .onTapGesture { }
                     .gesture(
                         DragGesture()
                             .onChanged { v in dragOffset = v.translation.height }
                             .onEnded { v in
                                 if v.translation.height > 80 {
-                                    withAnimation(.spring()) { cardVisible = false }
+                                    withAnimation(.easeInOut(duration: 0.3)) { cardVisible = false }
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { onClose() }
                                 } else {
                                     withAnimation(.spring()) { dragOffset = 0 }
@@ -73,7 +78,7 @@ struct DrinkTabResult: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .onAppear { cardVisible = true; dragOffset = 0 }
+        .onAppear { cardVisible = true; dragOffset = 0; isRefreshing = false }
     }
 
     private var recommendCard: some View {
@@ -143,19 +148,22 @@ struct DrinkTabResult: View {
             // CTA row
             HStack(spacing: 10) {
                 Button {
-                    withAnimation(.easeOut(duration: 0.2)) { cardVisible = false }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                        cardVisible = true
-                        onRefresh()
-                    }
+                    guard !isRefreshing else { return }
+                    isRefreshing = true
+                    onRefresh()
                 } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(Color.sbInk1)
-                        .frame(width: 52, height: 52)
-                        .background(Color.sbLine.opacity(0.6))
-                        .cornerRadius(14)
+                    ZStack {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(isRefreshing ? Color.sbInk3 : Color.sbInk1)
+                            .rotationEffect(.degrees(isRefreshing ? 360 : 0))
+                            .animation(isRefreshing ? .linear(duration: 0.8).repeatForever(autoreverses: false) : .default, value: isRefreshing)
+                    }
+                    .frame(width: 52, height: 52)
+                    .background(Color.sbLine.opacity(0.6))
+                    .cornerRadius(14)
                 }
+                .disabled(isRefreshing)
 
                 PrimaryButton(title: "记一杯 →", action: onRecord)
             }

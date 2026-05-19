@@ -30,6 +30,13 @@ struct ProfileTabView: View {
         NavigationStack {
             ZStack {
                 Color.sbCanvas.ignoresSafeArea()
+                // 覆盖顶部过度下拉区域，防止绿色边界露出
+                VStack(spacing: 0) {
+                    Color.sbGreenDeep
+                        .ignoresSafeArea(edges: .top)
+                        .frame(height: 500)
+                    Spacer()
+                }
                 ScrollView {
                     VStack(spacing: 0) {
                         // User Header
@@ -42,19 +49,14 @@ struct ProfileTabView: View {
                                     .font(.sbBodyMB)
                                     .foregroundStyle(Color.sbInk)
                                 Spacer()
-                                Text("查看全部 →")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(Color.sbGreenDeep)
                             }
                             .padding(.horizontal, 20)
                             .padding(.top, 20)
                             .padding(.bottom, 12)
 
-                            ForEach(achievementGroups) { group in
-                                achievementGroupCard(group)
-                                    .padding(.horizontal, 20)
-                                    .padding(.bottom, 12)
-                            }
+                            allBadgesCard
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 12)
                         }
 
                         // Settings
@@ -81,23 +83,6 @@ struct ProfileTabView: View {
             .ignoresSafeArea(edges: .top)
 
             VStack(spacing: 0) {
-                // Settings button
-                HStack {
-                    Spacer()
-                    Button {
-                        // settings (MVP: placeholder)
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .frame(width: 36, height: 36)
-                            .background(.white.opacity(0.12))
-                            .cornerRadius(10)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-
                 // Avatar + name
                 HStack(spacing: 14) {
                     ZStack {
@@ -125,7 +110,7 @@ struct ProfileTabView: View {
                     Spacer()
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 4)
+                .padding(.top, 16)
 
                 // Level progress
                 VStack(spacing: 6) {
@@ -209,9 +194,6 @@ struct ProfileTabView: View {
                         .frame(maxWidth: 160)
                     }
                     Spacer()
-                    Text("展开 ›")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color.sbGreenDeep)
                 }
 
                 // 4 badges
@@ -232,6 +214,53 @@ struct ProfileTabView: View {
                                 .foregroundStyle(badge.isUnlocked ? Color.sbGreenDeep : Color.sbInk3)
                         }
                         .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: All badges consolidated card
+    private var allBadgesCard: some View {
+        let allBadges = achievementGroups.flatMap { $0.badges }
+        let unlocked = allBadges.filter { $0.isUnlocked }.count
+        let total = allBadges.count
+        let progress = Double(unlocked) / Double(max(1, total))
+
+        return DCardBorder(padding: 14) {
+            VStack(spacing: 12) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("已解锁 \(unlocked) / \(total) 项")
+                            .font(.sbCaption)
+                            .foregroundStyle(Color.sbInk2)
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.sbGreenPale).frame(height: 4)
+                                Capsule().fill(Color.sbGreenDeep)
+                                    .frame(width: geo.size.width * progress, height: 4)
+                                    .animation(.easeOut(duration: 0.4), value: progress)
+                            }
+                        }
+                        .frame(height: 4)
+                    }
+                    Spacer()
+                }
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
+                    ForEach(allBadges) { badge in
+                        VStack(spacing: 4) {
+                            BadgeView(kind: badge.badgeKind, isUnlocked: badge.isUnlocked, size: 52)
+                            Text(badge.name)
+                                .font(.system(size: 10, weight: badge.isUnlocked ? .bold : .medium))
+                                .foregroundStyle(badge.isUnlocked ? Color.sbInk : Color.sbInk3)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text("\(min(badge.progress, badge.target))/\(badge.target)")
+                                .font(.system(size: 9, weight: .medium))
+                                .foregroundStyle(badge.isUnlocked ? Color.sbGreenDeep : Color.sbInk3)
+                        }
                     }
                 }
             }

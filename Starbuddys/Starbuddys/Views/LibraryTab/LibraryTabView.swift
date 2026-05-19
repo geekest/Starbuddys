@@ -30,6 +30,7 @@ struct LibraryTabView: View {
     @State private var lockedDrink: Drink? = nil
     @State private var showLockedAlert = false
     @State private var navToDrink: Drink? = nil
+    @State private var recordDrink: Drink? = nil
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
@@ -181,11 +182,22 @@ struct LibraryTabView: View {
             }
             .alert("还没喝过这款", isPresented: $showLockedAlert) {
                 Button("去记一杯") {
-                    if let d = lockedDrink { navToDrink = d }
+                    if let d = lockedDrink { recordDrink = d }
                 }
                 Button("取消", role: .cancel) {}
             } message: {
                 Text(lockedDrink.map { "「\($0.nameCN)」等你解锁" } ?? "")
+            }
+            .sheet(item: $recordDrink) { drink in
+                NavigationStack {
+                    DetailPage(
+                        drink: drink,
+                        prefill: nil,
+                        allRecords: records,
+                        onSaved: { _ in recordDrink = nil },
+                        onCancel: { recordDrink = nil }
+                    )
+                }
             }
         }
     }
@@ -365,6 +377,9 @@ struct DrinkDetailReadOnly: View {
     let drink: Drink
     let records: [CupRecord]
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var repo: DrinkRepository
+
+    @State private var selectedRecord: CupRecord? = nil
 
     private var drinkRecords: [CupRecord] {
         records.filter { $0.drinkID == drink.id }.sorted { $0.drunkAt > $1.drunkAt }
@@ -404,28 +419,37 @@ struct DrinkDetailReadOnly: View {
                                 .foregroundStyle(Color.sbInk)
 
                             ForEach(drinkRecords.prefix(5)) { r in
-                                HStack(spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(r.drunkAt.formatted(date: .abbreviated, time: .shortened))
-                                            .font(.sbCaption)
-                                            .foregroundStyle(Color.sbInk2)
-                                        Text(r.shortSpec)
-                                            .font(.sbBodyS)
-                                            .foregroundStyle(Color.sbInk)
-                                    }
-                                    Spacer()
-                                    HStack(spacing: 2) {
-                                        ForEach(1...5, id: \.self) { s in
-                                            Image(systemName: s <= r.rating ? "star.fill" : "star")
-                                                .font(.system(size: 10))
-                                                .foregroundStyle(s <= r.rating ? Color.sbAmber : Color.sbLine2)
+                                Button {
+                                    selectedRecord = r
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(r.drunkAt.formatted(date: .abbreviated, time: .shortened))
+                                                .font(.sbCaption)
+                                                .foregroundStyle(Color.sbInk2)
+                                            Text(r.shortSpec)
+                                                .font(.sbBodyS)
+                                                .foregroundStyle(Color.sbInk)
                                         }
+                                        Spacer()
+                                        HStack(spacing: 2) {
+                                            ForEach(1...5, id: \.self) { s in
+                                                Image(systemName: s <= r.rating ? "star.fill" : "star")
+                                                    .font(.system(size: 10))
+                                                    .foregroundStyle(s <= r.rating ? Color.sbAmber : Color.sbLine2)
+                                            }
+                                        }
+                                        Text("¥\(r.computedPrice)")
+                                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                            .foregroundStyle(Color.sbInk)
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundStyle(Color.sbInk3)
                                     }
-                                    Text("¥\(r.computedPrice)")
-                                        .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                        .foregroundStyle(Color.sbInk)
+                                    .padding(.vertical, 8)
+                                    .contentShape(Rectangle())
                                 }
-                                .padding(.vertical, 8)
+                                .buttonStyle(.plain)
                                 if r.id != drinkRecords.prefix(5).last?.id {
                                     Divider()
                                 }
@@ -445,6 +469,10 @@ struct DrinkDetailReadOnly: View {
         .overlay(alignment: .top) {
             NavHeaderView(title: drink.nameCN, leftAction: { dismiss() })
                 .background(Color.sbCanvas.opacity(0.95))
+        }
+        .navigationDestination(item: $selectedRecord) { record in
+            RecordDetailView(record: record)
+                .environmentObject(repo)
         }
     }
 }
