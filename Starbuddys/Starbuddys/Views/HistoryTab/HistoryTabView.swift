@@ -18,9 +18,20 @@ private enum CalCell: Identifiable {
 struct MonthAllRecordsView: View {
     let year: Int
     let month: Int
-    let records: [CupRecord]
     @EnvironmentObject private var repo: DrinkRepository
+    @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @Query(sort: \CupRecord.drunkAt, order: .reverse) private var allRecords: [CupRecord]
+
+    @State private var selectedRecord: CupRecord? = nil
+
+    private var records: [CupRecord] {
+        let cal = Calendar.current
+        return allRecords.filter {
+            let c = cal.dateComponents([.year, .month], from: $0.drunkAt)
+            return c.year == year && c.month == month
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -40,8 +51,13 @@ struct MonthAllRecordsView: View {
                         VStack(spacing: 0) {
                             ForEach(Array(records.enumerated()), id: \.element.id) { idx, record in
                                 if let drink = repo.drink(id: record.drinkID) {
-                                    recordRow(record: record, drink: drink)
-                                        .padding(.horizontal, 20)
+                                    SwipeToDeleteRow(
+                                        onDelete: { deleteRecord(record) },
+                                        onTap: { selectedRecord = record }
+                                    ) {
+                                        recordRow(record: record, drink: drink)
+                                            .padding(.horizontal, 20)
+                                    }
                                     if idx < records.count - 1 {
                                         Divider().padding(.leading, 80)
                                     }
@@ -66,7 +82,18 @@ struct MonthAllRecordsView: View {
                         .foregroundStyle(Color.sbGreenDeep)
                 }
             }
+            .navigationDestination(item: $selectedRecord) { record in
+                if let drink = repo.drink(id: record.drinkID) {
+                    RecordDetailView(record: record)
+                        .environmentObject(repo)
+                }
+            }
         }
+    }
+
+    private func deleteRecord(_ record: CupRecord) {
+        context.delete(record)
+        try? context.save()
     }
 
     private func recordRow(record: CupRecord, drink: Drink) -> some View {
@@ -115,12 +142,14 @@ struct MonthAllRecordsView: View {
 struct HistoryTabView: View {
     @Query(sort: \CupRecord.drunkAt, order: .reverse) private var records: [CupRecord]
     @EnvironmentObject private var repo: DrinkRepository
+    @Environment(\.modelContext) private var context
 
     @State private var displayYear:  Int
     @State private var displayMonth: Int
     @State private var selectedDay:  Int? = nil
     @State private var showYearPicker  = false
     @State private var showAllRecords  = false
+    @State private var selectedRecord: CupRecord? = nil
 
     init() {
         let c = Calendar.current
@@ -164,7 +193,6 @@ struct HistoryTabView: View {
         cal.locale = Locale(identifier: "zh_CN")
         let comps = DateComponents(year: displayYear, month: displayMonth, day: 1)
         guard let date = cal.date(from: comps) else { return 0 }
-        // Sun=1 Mon=2 … Sat=7  →  Mon-first layout offset
         let wd = cal.component(.weekday, from: date)
         let offset = (wd - 2 + 7) % 7
         return offset
@@ -206,8 +234,9 @@ struct HistoryTabView: View {
                             .padding(.horizontal, 16)
                             .padding(.bottom, 16)
 
+                        summaryCards.padding(.horizontal, 20)
+
                         if !monthRecords.isEmpty {
-                            summaryCards.padding(.horizontal, 20)
                             if let (drink, count) = favoriteDrink {
                                 favoriteCard(drink: drink, count: count)
                                     .padding(.horizontal, 20)
@@ -227,8 +256,14 @@ struct HistoryTabView: View {
             .navigationBarHidden(true)
             .sheet(isPresented: $showYearPicker) { yearPickerSheet }
             .sheet(isPresented: $showAllRecords) {
-                MonthAllRecordsView(year: displayYear, month: displayMonth, records: monthRecords)
+                MonthAllRecordsView(year: displayYear, month: displayMonth)
                     .environmentObject(repo)
+            }
+            .navigationDestination(item: $selectedRecord) { record in
+                if let drink = repo.drink(id: record.drinkID) {
+                    RecordDetailView(record: record)
+                        .environmentObject(repo)
+                }
             }
         }
     }
@@ -305,7 +340,8 @@ struct HistoryTabView: View {
                 switch cell {
                 case .empty:
                     Color.clear
-                        .aspectRatio(1, contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 58)
                 case .day(let day):
                     dayCell(day)
                 }
@@ -334,25 +370,30 @@ struct HistoryTabView: View {
                     ))
                     .foregroundStyle(isToday ? .white : (dayRecords.isEmpty ? Color.sbInk3 : Color.sbInk))
             }
-            if !dayRecords.isEmpty {
-                HStack(spacing: -6) {
-                    ForEach(Array(dayRecords.prefix(2).enumerated()), id: \.0) { idx, r in
-                        if let drink = repo.drink(id: r.drinkID) {
-                            DrinkAvatar(drink: drink, size: 18)
-                                .overlay(Circle().strokeBorder(.white, lineWidth: 1))
-                                .zIndex(Double(2 - idx))
+            .frame(width: 30, height: 30)
+
+            ZStack {
+                if !dayRecords.isEmpty {
+                    HStack(spacing: -6) {
+                        ForEach(Array(dayRecords.prefix(2).enumerated()), id: \.0) { idx, r in
+                            if let drink = repo.drink(id: r.drinkID) {
+                                DrinkAvatar(drink: drink, size: 18)
+                                    .overlay(Circle().strokeBorder(.white, lineWidth: 1))
+                                    .zIndex(Double(2 - idx))
+                            }
                         }
-                    }
-                    if dayRecords.count > 2 {
-                        Text("+\(dayRecords.count - 2)")
-                            .font(.system(size: 7))
-                            .foregroundStyle(Color.sbInk3)
+                        if dayRecords.count > 2 {
+                            Text("+\(dayRecords.count - 2)")
+                                .font(.system(size: 7))
+                                .foregroundStyle(Color.sbInk3)
+                        }
                     }
                 }
             }
+            .frame(height: 20)
         }
-        .aspectRatio(1, contentMode: .fill)
-        .padding(.vertical, 4)
+        .frame(maxWidth: .infinity)
+        .frame(height: 58)
         .contentShape(Rectangle())
         .onTapGesture {
             withAnimation(.easeInOut(duration: 0.15)) {
@@ -395,12 +436,14 @@ struct HistoryTabView: View {
 
     // MARK: Summary cards
     private var summaryCards: some View {
-        HStack(spacing: 10) {
-            ForEach([
-                ("杯数", "\(monthRecords.count)", "杯"),
-                ("花费", "\(totalSpent)", "¥"),
-                ("连击", "\(streak)", "天"),
-            ], id: \.0) { label, value, unit in
+        let items: [(String, String, String)] = [
+            ("本月已喝", "\(monthRecords.count)", "杯"),
+            ("花费",    "\(totalSpent)",          "¥"),
+            ("连击",    "\(streak)",              "天"),
+            ("杯数",    "\(monthRecords.count)",  "杯"),
+        ]
+        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+            ForEach(items, id: \.0) { label, value, unit in
                 DCardBorder {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(label)
@@ -471,7 +514,7 @@ struct HistoryTabView: View {
 
             let toShow = displayedRecords
             if toShow.isEmpty {
-                Text("当日暂无记录")
+                Text(selectedDay != nil ? "当日暂无记录" : "这个月还没记录")
                     .font(.sbCaption)
                     .foregroundStyle(Color.sbInk3)
                     .frame(maxWidth: .infinity)
@@ -480,7 +523,12 @@ struct HistoryTabView: View {
                 let shown = Array(toShow.prefix(5))
                 ForEach(Array(shown.enumerated()), id: \.element.id) { idx, record in
                     if let drink = repo.drink(id: record.drinkID) {
-                        recordRow(record: record, drink: drink)
+                        SwipeToDeleteRow(
+                            onDelete: { deleteRecord(record) },
+                            onTap: { selectedRecord = record }
+                        ) {
+                            recordRow(record: record, drink: drink)
+                        }
                         if idx < shown.count - 1 {
                             Divider().padding(.leading, 60)
                         }
@@ -570,6 +618,11 @@ struct HistoryTabView: View {
             displayMonth = c.month ?? displayMonth
             selectedDay  = nil
         }
+    }
+
+    private func deleteRecord(_ record: CupRecord) {
+        context.delete(record)
+        try? context.save()
     }
 
     private func computeStreak() -> Int {

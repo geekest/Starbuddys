@@ -4,9 +4,12 @@ import SwiftData
 struct DetailPage: View {
     let drink: Drink
     var prefill: CupRecord?
+    var existingRecord: CupRecord? = nil
     let allRecords: [CupRecord]
     var onSaved: (String) -> Void
     var onCancel: () -> Void
+
+    private var isEditMode: Bool { existingRecord != nil }
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -37,9 +40,10 @@ struct DetailPage: View {
     @State private var note: String
     @State private var showDiscardAlert = false
 
-    init(drink: Drink, prefill: CupRecord?, allRecords: [CupRecord], onSaved: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
+    init(drink: Drink, prefill: CupRecord?, existingRecord: CupRecord? = nil, allRecords: [CupRecord], onSaved: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
         self.drink = drink
         self.prefill = prefill
+        self.existingRecord = existingRecord
         self.allRecords = allRecords
         self.onSaved = onSaved
         self.onCancel = onCancel
@@ -120,7 +124,7 @@ struct DetailPage: View {
         .navigationBarHidden(true)
         .overlay(alignment: .top) {
             NavHeaderView(
-                title: "记一杯",
+                title: isEditMode ? "编辑记录" : "记一杯",
                 leftAction: { showDiscardAlert = true },
                 rightContent: AnyView(
                     Button {
@@ -139,8 +143,8 @@ struct DetailPage: View {
             )
             .background(Color.sbCanvas.opacity(0.95))
         }
-        .alert("确定放弃这次记录？", isPresented: $showDiscardAlert) {
-            Button("放弃", role: .destructive) { onCancel() }
+        .alert(isEditMode ? "确定放弃此次修改？" : "确定放弃这次记录？", isPresented: $showDiscardAlert) {
+            Button(isEditMode ? "放弃修改" : "放弃", role: .destructive) { onCancel() }
             Button("继续", role: .cancel) { }
         }
     }
@@ -373,6 +377,31 @@ struct DetailPage: View {
     private func save() {
         let feedback = UINotificationFeedbackGenerator()
         feedback.notificationOccurred(.success)
+
+        if let existing = existingRecord {
+            existing.cupSizeRaw          = selectedSize.rawValue
+            existing.temperatureRaw      = selectedTemp.rawValue
+            existing.milkTypeRaw         = selectedMilk.rawValue
+            existing.espressoTypeRaw     = selectedEspresso?.rawValue
+            existing.espressoStrengthRaw = selectedEspressoStrength?.rawValue
+            existing.espressoShotsRaw    = String(espressoShots)
+            existing.foamLevelRaw        = selectedFoam?.rawValue
+            existing.sweetOptionRaw      = selectedSweetOption?.rawValue
+            existing.sweetPositionRaw    = selectedSweetPosition?.rawValue
+            existing.whippedCreamLevelRaw = selectedWhippedCream?.rawValue
+            existing.flavorSyrupsData    = (try? JSONEncoder().encode(selectedFlavorSyrups)) ?? Data()
+            existing.customPrice         = customPrice.isEmpty ? nil : Int(customPrice)
+            existing.rating              = rating
+            existing.note                = note.isEmpty ? nil : note
+            existing.computedPrice       = computedPrice
+            do {
+                try context.save()
+            } catch {
+                assertionFailure("Failed to update CupRecord: \(error)")
+            }
+            onSaved("修改已保存 ✓")
+            return
+        }
 
         let record = CupRecord(
             drinkID: drink.id,
