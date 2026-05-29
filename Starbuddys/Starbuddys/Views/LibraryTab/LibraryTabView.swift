@@ -325,7 +325,7 @@ struct LibraryTabView: View {
 
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("\(section.title)  ×\(unlocked)/\(section.drinks.count)")
+                Text("\(section.title)  \(unlocked)/\(section.drinks.count)")
                     .font(.sbBodyMB)
                     .foregroundStyle(Color.sbInk)
                 Spacer()
