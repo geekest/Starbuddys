@@ -44,4 +44,12 @@ extension Color {
     static let sbRoseSoft   = Color(hex: "#F4E2E6")
     static let sbBerry      = Color(hex: "#884E5E")
     static let sbMatcha     = Color(hex: "#6B9168")
+
+    // Manner 品牌色
+    static let mnBrown      = Color(hex: "#A67C52")
+    static let mnBrownDark  = Color(hex: "#7A5A35")
+
+    // 瑞幸品牌色
+    static let lcNavy       = Color(hex: "#383967")
+    static let lcNavyLight  = Color(hex: "#5B5D8F")
 }

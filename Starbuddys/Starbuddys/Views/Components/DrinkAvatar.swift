@@ -43,7 +43,16 @@ struct DrinkAvatar: View {
 
     @ViewBuilder
     private var imageOrPlaceholder: some View {
-        if UIImage(named: drink.imageAssetName) != nil {
+        if let fileName = drink.userPhotoFileName,
+           let uiImage = UserDrinkStore.shared.loadPhoto(fileName: fileName) {
+            // 用户上传的自定义照片
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .clipShape(Circle())
+                .padding(size * 0.08)
+        } else if UIImage(named: drink.imageAssetName) != nil {
+            // Asset Catalog 中的 seed 图片
             Image(drink.imageAssetName)
                 .resizable()
                 .scaledToFit()

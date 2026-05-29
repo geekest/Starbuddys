@@ -11,10 +11,19 @@ struct Drink: Identifiable, Codable, Hashable {
     /// 图片文件名（含扩展名），支持 photoAvatar / imageName 两种 JSON 字段名
     let photoAvatar: String
     let tags: [DrinkTag]
+    /// 用户自建品类名称，仅在用户创建非标准品类时有值，seed 饮品为 nil
+    var customCategoryName: String?
+    /// 用户上传照片的文件名（存于 Documents 目录），seed 饮品为 nil
+    var userPhotoFileName: String?
+    /// 是否为用户手动新增的饮品
+    var isUserCreated: Bool
 
     init(id: String, brand: BrandType = .starbucks, nameCN: String, nameEN: String,
          category: DrinkCategory, description: String,
-         sizes: [String: Int], photoAvatar: String, tags: [DrinkTag]) {
+         sizes: [String: Int], photoAvatar: String, tags: [DrinkTag],
+         customCategoryName: String? = nil,
+         userPhotoFileName: String? = nil,
+         isUserCreated: Bool = false) {
         self.id = id
         self.brand = brand
         self.nameCN = nameCN
@@ -24,11 +33,15 @@ struct Drink: Identifiable, Codable, Hashable {
         self.sizes = sizes
         self.photoAvatar = photoAvatar
         self.tags = tags
+        self.customCategoryName = customCategoryName
+        self.userPhotoFileName = userPhotoFileName
+        self.isUserCreated = isUserCreated
     }
 
     /// 主 CodingKeys —— 属性与 JSON key 完全对应，供自动合成 encode(to:) 使用
     private enum CodingKeys: String, CodingKey {
         case id, brand, nameCN, nameEN, category, description, sizes, tags, photoAvatar
+        case customCategoryName, userPhotoFileName, isUserCreated
     }
 
     /// 旧 manner.seed.json 使用 imageName 字段，单独定义以兼容解码
@@ -60,6 +73,10 @@ struct Drink: Identifiable, Codable, Hashable {
         } else {
             brand = category.brand
         }
+        // 用户自建饮品字段（seed JSON 中不存在，默认为 nil/false）
+        customCategoryName = try c.decodeIfPresent(String.self, forKey: .customCategoryName)
+        userPhotoFileName  = try c.decodeIfPresent(String.self, forKey: .userPhotoFileName)
+        isUserCreated      = try c.decodeIfPresent(Bool.self,   forKey: .isUserCreated) ?? false
     }
 
     var sizePrices: [CupSize: Int] {
@@ -94,6 +111,11 @@ struct Drink: Identifiable, Codable, Hashable {
              .mnClassicEspresso, .mnSOE, .mnMilkCoffee, .mnOat:
             return true
         case .mnNonCoffee:
+            return false
+        // 瑞幸
+        case .lkSeasonal, .lkLightMilk, .lkEspresso, .lkOat:
+            return true
+        case .lkMilkTea, .lkFruitTea, .lkNonCoffee:
             return false
         }
     }

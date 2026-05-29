@@ -1,13 +1,16 @@
 import Foundation
+import SwiftUI
 
 enum BrandType: String, Codable, CaseIterable, Hashable {
     case starbucks = "starbucks"
     case manner    = "manner"
+    case luckin    = "luckin"
 
     var displayName: String {
         switch self {
         case .starbucks: return "星巴克"
         case .manner:    return "Manner"
+        case .luckin:    return "瑞幸"
         }
     }
 
@@ -15,6 +18,16 @@ enum BrandType: String, Codable, CaseIterable, Hashable {
         switch self {
         case .starbucks: return "星巴克"
         case .manner:    return "Manner"
+        case .luckin:    return "瑞幸"
+        }
+    }
+
+    /// 各品牌的主题色对（深色、浅色），用于品牌选项卡和进度卡片渐变
+    var brandColors: (dark: Color, light: Color) {
+        switch self {
+        case .starbucks: return (Color.sbGreenDeep, Color.sbGreen)
+        case .manner:    return (Color.mnBrown, Color.mnBrownDark)
+        case .luckin:    return (Color.lcNavy, Color.lcNavyLight)
         }
     }
 }
@@ -49,6 +62,15 @@ enum DrinkCategory: String, Codable, CaseIterable, Hashable {
     case mnOat             = "燕麦系列"
     case mnNonCoffee       = "无咖啡系列"
 
+    // 瑞幸（避免与 Manner 中文名冲突，加品牌前缀区分）
+    case lkSeasonal        = "瑞幸季节新品"
+    case lkLightMilk       = "轻乳咖啡"
+    case lkEspresso        = "浓缩咖啡"
+    case lkMilkTea         = "奶茶系列"
+    case lkFruitTea        = "果茶"
+    case lkOat             = "燕麦咖啡"
+    case lkNonCoffee       = "非咖啡"
+
     var displayName: String { rawValue }
 
     var brand: BrandType {
@@ -61,6 +83,9 @@ enum DrinkCategory: String, Codable, CaseIterable, Hashable {
         case .mnSeasonal, .mnTreasure, .mnFruitAmericano, .mnVenti,
              .mnClassicEspresso, .mnSOE, .mnMilkCoffee, .mnOat, .mnNonCoffee:
             return .manner
+        case .lkSeasonal, .lkLightMilk, .lkEspresso, .lkMilkTea,
+             .lkFruitTea, .lkOat, .lkNonCoffee:
+            return .luckin
         }
     }
 
@@ -105,6 +130,13 @@ enum DrinkCategory: String, Codable, CaseIterable, Hashable {
         case .mnMilkCoffee:      return "mug.fill"
         case .mnOat:             return "leaf.fill"
         case .mnNonCoffee:       return "drop.circle.fill"
+        case .lkSeasonal:        return "sparkles"
+        case .lkLightMilk:       return "drop.fill"
+        case .lkEspresso:        return "cup.and.saucer.fill"
+        case .lkMilkTea:         return "leaf.fill"
+        case .lkFruitTea:        return "leaf.circle.fill"
+        case .lkOat:             return "leaf.fill"
+        case .lkNonCoffee:       return "drop.circle.fill"
         }
     }
 }

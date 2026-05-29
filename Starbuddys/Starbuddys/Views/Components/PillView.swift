@@ -72,12 +72,14 @@ struct BrandBadge: View {
         switch brand {
         case .starbucks: return Color.sbGreenPale
         case .manner:    return Color(red: 0.16, green: 0.16, blue: 0.18)
+        case .luckin:    return Color.lcNavy.opacity(0.15)
         }
     }
     private var textColor: Color {
         switch brand {
         case .starbucks: return Color.sbGreenDeep
         case .manner:    return .white
+        case .luckin:    return Color.lcNavy
         }
     }
 }

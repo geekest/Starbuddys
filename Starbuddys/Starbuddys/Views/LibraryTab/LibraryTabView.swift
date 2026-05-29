@@ -11,10 +11,12 @@ private enum LibraryFilter: String, CaseIterable, Hashable {
 
 private enum QuickFilter: Hashable {
     case category(DrinkCategory)
+    case customCategory(String)
 
     var label: String {
         switch self {
-        case .category(let c): return c.displayName
+        case .category(let c):       return c.displayName
+        case .customCategory(let s): return s
         }
     }
 }
@@ -31,6 +33,7 @@ struct LibraryTabView: View {
     @State private var showLockedAlert = false
     @State private var navToDrink: Drink? = nil
     @State private var recordDrink: Drink? = nil
+    @State private var showAddDrink = false
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
@@ -62,9 +65,23 @@ struct LibraryTabView: View {
     }
 
     private var quickFilterOptions: [(label: String, filter: QuickFilter)] {
-        DrinkCategory.categories(for: brand)
-            .filter { cat in allDrinks.contains(where: { $0.category == cat }) }
-            .map { ($0.displayName, .category($0)) }
+        var opts = DrinkCategory.categories(for: brand)
+            .filter { cat in allDrinks.contains(where: { $0.category == cat && $0.customCategoryName == nil }) }
+            .map { (label: $0.displayName, filter: QuickFilter.category($0)) }
+        // 追加用户自定义品类的快速筛选选项
+        let customNames = customCategoryNames(from: allDrinks)
+        for name in customNames {
+            opts.append((label: name, filter: .customCategory(name)))
+        }
+        return opts
+    }
+
+    /// 提取当前品牌下的用户自定义品类名（去重保序）
+    private func customCategoryNames(from drinks: [Drink]) -> [String] {
+        drinks
+            .filter { $0.isUserCreated && $0.customCategoryName != nil }
+            .compactMap { $0.customCategoryName }
+            .reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
     }
 
     private var sections: [DrinkSection] {
@@ -72,17 +89,28 @@ struct LibraryTabView: View {
         case .none:
             return buildSections(from: filteredDrinks)
         case .some(.category(let cat)):
-            let drinks = filteredDrinks.filter { $0.category == cat }
+            let drinks = filteredDrinks.filter { $0.category == cat && $0.customCategoryName == nil }
             return drinks.isEmpty ? [] : [DrinkSection(id: cat.rawValue, title: cat.displayName, drinks: drinks)]
+        case .some(.customCategory(let name)):
+            let drinks = filteredDrinks.filter { $0.customCategoryName == name }
+            return drinks.isEmpty ? [] : [DrinkSection(id: "custom_\(name)", title: name, drinks: drinks)]
         }
     }
 
     private func buildSections(from drinks: [Drink]) -> [DrinkSection] {
-        DrinkCategory.categories(for: brand).compactMap { cat in
-            let d = drinks.filter { $0.category == cat }
+        // 标准品类分区（seed 饮品 + 使用标准品类的用户饮品）
+        var result = DrinkCategory.categories(for: brand).compactMap { cat -> DrinkSection? in
+            let d = drinks.filter { $0.category == cat && $0.customCategoryName == nil }
             guard !d.isEmpty else { return nil }
             return DrinkSection(id: cat.rawValue, title: cat.displayName, drinks: d)
         }
+        // 用户自定义品类分区（追加在最后）
+        let customNames = customCategoryNames(from: drinks)
+        for name in customNames {
+            let d = drinks.filter { $0.customCategoryName == name }
+            result.append(DrinkSection(id: "custom_\(name)", title: name, drinks: d))
+        }
+        return result
     }
 
     var body: some View {
@@ -97,12 +125,27 @@ struct LibraryTabView: View {
                                 .font(.sbTitleXL)
                                 .foregroundStyle(Color.sbInk)
                             Spacer()
+                            // 新增饮品胶囊按钮，右对齐
+                            Button { showAddDrink = true } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 11, weight: .semibold))
+                                    Text("新增饮品")
+                                        .font(.sbCaption)
+                                }
+                                .foregroundStyle(Color.sbInk1)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.sbLine2, lineWidth: 1))
+                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 12)
                         .padding(.bottom, 8)
 
-                        // Brand selector
+                        // Brand selector（各品牌激活色独立）
                         HStack(spacing: 8) {
                             ForEach(BrandType.allCases, id: \.self) { b in
                                 Button {
@@ -113,7 +156,7 @@ struct LibraryTabView: View {
                                         .foregroundStyle(brand == b ? .white : Color.sbInk1)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 9)
-                                        .background(brand == b ? Color.sbGreenDeep : Color.sbLine.opacity(0.5))
+                                        .background(brand == b ? b.brandColors.dark : Color.sbLine.opacity(0.5))
                                         .clipShape(RoundedRectangle(cornerRadius: 10))
                                 }
                                 .buttonStyle(.plain)
@@ -180,6 +223,10 @@ struct LibraryTabView: View {
             .navigationDestination(item: $navToDrink) { drink in
                 DrinkDetailReadOnly(drink: drink, records: records)
             }
+            .sheet(isPresented: $showAddDrink) {
+                DrinkEditView(mode: .create(brand: brand))
+                    .environmentObject(repo)
+            }
             .alert("还没喝过这款", isPresented: $showLockedAlert) {
                 Button("去记一杯") {
                     if let d = lockedDrink { recordDrink = d }
@@ -206,7 +253,7 @@ struct LibraryTabView: View {
     private var progressCard: some View {
         ZStack {
             LinearGradient(
-                colors: [Color.sbGreenDeep, Color.sbGreen],
+                colors: [brand.brandColors.dark, brand.brandColors.light],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
             .cornerRadius(18)
@@ -264,10 +311,9 @@ struct LibraryTabView: View {
 
     private var nextTarget: String {
         let unlocked = brandUnlockedIDs.count
-        let total = brandDrinks.count
-        let milestones = (brand == .starbucks)
-            ? [10, 24, 35, 50, total]
-            : [5, 10, 20, 30, total]
+        let total    = brandDrinks.count
+        // 三个品牌统一收集里程碑：2→5→10→15→20→30→40→50→全收集
+        let milestones = [2, 5, 10, 15, 20, 30, 40, 50, total]
         return milestones.first { $0 > unlocked }.map { "\($0) 款" } ?? "全部！"
     }
 
@@ -380,6 +426,7 @@ struct DrinkDetailReadOnly: View {
     @EnvironmentObject private var repo: DrinkRepository
 
     @State private var selectedRecord: CupRecord? = nil
+    @State private var showEdit = false
 
     private var drinkRecords: [CupRecord] {
         records.filter { $0.drinkID == drink.id }.sorted { $0.drunkAt > $1.drunkAt }
@@ -467,8 +514,22 @@ struct DrinkDetailReadOnly: View {
         }
         .navigationBarHidden(true)
         .overlay(alignment: .top) {
-            NavHeaderView(title: drink.nameCN, leftAction: { dismiss() })
-                .background(Color.sbCanvas.opacity(0.95))
+            NavHeaderView(
+                title: drink.nameCN,
+                leftAction: { dismiss() },
+                rightContent: drink.isUserCreated
+                    ? AnyView(
+                        Button("编辑") { showEdit = true }
+                            .font(.sbBodyMB)
+                            .foregroundStyle(Color.sbInk)
+                      )
+                    : nil
+            )
+            .background(Color.sbCanvas.opacity(0.95))
+        }
+        .sheet(isPresented: $showEdit) {
+            DrinkEditView(mode: .edit(drink))
+                .environmentObject(repo)
         }
         .navigationDestination(item: $selectedRecord) { record in
             RecordDetailView(record: record)

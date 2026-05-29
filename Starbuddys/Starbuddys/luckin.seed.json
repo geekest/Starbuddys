@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "drinks": [
+    {
+      "id": "lk_001",
+      "brand": "luckin",
+      "nameCN": "生椰拿铁",
+      "nameEN": "Coconut Latte",
+      "category": "轻乳咖啡",
+      "description": "瑞幸标志性产品，新鲜椰浆与意式浓缩完美融合，椰香浓郁，口感顺滑丝绒，是最受欢迎的单品之一。",
+      "photoAvatar": "",
+      "sizes": { "grande": 19 },
+      "tags": ["cold", "latte"]
+    },
+    {
+      "id": "lk_002",
+      "brand": "luckin",
+      "nameCN": "厚乳拿铁",
+      "nameEN": "Thick Milk Latte",
+      "category": "轻乳咖啡",
+      "description": "厚醇牛乳与意式浓缩相融，奶感饱满，咖啡香气层次丰富，甜而不腻。",
+      "photoAvatar": "",
+      "sizes": { "tall": 15, "grande": 19 },
+      "tags": ["latte"]
+    },
+    {
+      "id": "lk_003",
+      "brand": "luckin",
+      "nameCN": "美式咖啡",
+      "nameEN": "Americano",
+      "category": "浓缩咖啡",
+      "description": "双份意式浓缩加水稀释，口感清爽，咖啡风味纯粹，适合日常提神。",
+      "photoAvatar": "",
+      "sizes": { "tall": 11, "grande": 15 },
+      "tags": ["americano", "cold"]
+    },
+    {
+      "id": "lk_004",
+      "brand": "luckin",
+      "nameCN": "拿铁咖啡",
+      "nameEN": "Latte",
+      "category": "浓缩咖啡",
+      "description": "经典意式拿铁，浓缩与蒸汽牛奶完美比例，绵密奶泡收尾，顺滑醇厚。",
+      "photoAvatar": "",
+      "sizes": { "tall": 15, "grande": 19 },
+      "tags": ["latte"]
+    },
+    {
+      "id": "lk_005",
+      "brand": "luckin",
+      "nameCN": "生酪拿铁",
+      "nameEN": "Cheese Latte",
+      "category": "瑞幸季节新品",
+      "description": "芝士奶盖搭配浓缩拿铁，咸甜平衡，奶香浓郁，层次感十足。",
+      "photoAvatar": "",
+      "sizes": { "grande": 21 },
+      "tags": ["latte"]
+    },
+    {
+      "id": "lk_006",
+      "brand": "luckin",
+      "nameCN": "燕麦拿铁",
+      "nameEN": "Oat Milk Latte",
+      "category": "燕麦咖啡",
+      "description": "燕麦奶替代传统牛奶，植物基风味与咖啡相融，清爽不腻，适合乳糖不耐受人群。",
+      "photoAvatar": "",
+      "sizes": { "tall": 17, "grande": 21 },
+      "tags": ["latte", "oatmilk"]
+    },
+    {
+      "id": "lk_007",
+      "brand": "luckin",
+      "nameCN": "杨枝甘露",
+      "nameEN": "Mango Pomelo Sago",
+      "category": "果茶",
+      "description": "芒果、西柚与椰奶交织，清甜解腻，经典港式风味改良版。",
+      "photoAvatar": "",
+      "sizes": { "grande": 19 },
+      "tags": ["cold", "tea"]
+    },
+    {
+      "id": "lk_008",
+      "brand": "luckin",
+      "nameCN": "桂花乌龙拿铁",
+      "nameEN": "Osmanthus Oolong Latte",
+      "category": "奶茶系列",
+      "description": "桂花清香与乌龙茶底融入牛奶，花香袭人，奶香温润，东方风味与咖啡的美妙碰撞。",
+      "photoAvatar": "",
+      "sizes": { "grande": 21 },
+      "tags": ["latte", "tea", "floral"]
+    }
+  ]
+}
