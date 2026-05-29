@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import Combine
 
 /// 用户自建饮品的持久化存储服务（单例），数据以 JSON 文件存于 Documents 目录
 @MainActor
