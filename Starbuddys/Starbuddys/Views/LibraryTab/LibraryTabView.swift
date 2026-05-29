@@ -312,8 +312,8 @@ struct LibraryTabView: View {
     private var nextTarget: String {
         let unlocked = brandUnlockedIDs.count
         let total    = brandDrinks.count
-        // 三个品牌统一收集里程碑：2→5→10→15→20→30→40→50→全收集
-        let milestones = [2, 5, 10, 15, 20, 30, 40, 50, total]
+        // 固定里程碑过滤掉超过品牌总数的节点，再追加 total 作为终点
+        let milestones = [2, 5, 10, 15, 20, 30, 40, 50].filter { $0 < total } + [total]
         return milestones.first { $0 > unlocked }.map { "\($0) 款" } ?? "全部！"
     }
 
