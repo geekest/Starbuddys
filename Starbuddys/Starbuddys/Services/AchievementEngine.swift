@@ -20,8 +20,10 @@ final class AchievementEngine {
 
         let starbucksSet = inBrand(.starbucks)
         let mannerSet    = inBrand(.manner)
+        let luckinSet    = inBrand(.luckin)
         let starbucksUnlocked = uniqueDrinks.intersection(starbucksSet).count
         let mannerUnlocked    = uniqueDrinks.intersection(mannerSet).count
+        let luckinUnlocked    = uniqueDrinks.intersection(luckinSet).count
 
         let collectionBadges: [Achievement] = [
             .init(id: "col-sb-10",  group: .collection, name: "星巴克初尝", desc: "解锁星巴克 10 款",
@@ -32,6 +34,10 @@ final class AchievementEngine {
                   target: 10, progress: mannerUnlocked, badgeKind: "starter"),
             .init(id: "col-mn-all", group: .collection, name: "Manner 全鉴", desc: "解锁全部 Manner \(mannerSet.count) 款",
                   target: max(1, mannerSet.count), progress: mannerUnlocked, badgeKind: "full"),
+            .init(id: "col-lk-5",   group: .collection, name: "瑞幸初尝", desc: "解锁瑞幸 5 款",
+                  target: 5, progress: luckinUnlocked, badgeKind: "starter"),
+            .init(id: "col-lk-all", group: .collection, name: "瑞幸全鉴", desc: "解锁全部瑞幸 \(luckinSet.count) 款",
+                  target: max(1, luckinSet.count), progress: luckinUnlocked, badgeKind: "full"),
         ]
 
         let classicSet   = inCategory(.sbClassicCoffee)
@@ -109,7 +115,8 @@ final class AchievementEngine {
         var day = cal.startOfDay(for: Date())
         while days.contains(day) {
             streak += 1
-            day = cal.date(byAdding: .day, value: -1, to: day)!
+            guard let prevDay = cal.date(byAdding: .day, value: -1, to: day) else { break }
+            day = prevDay
         }
         return streak
     }

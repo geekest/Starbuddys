@@ -39,7 +39,8 @@ struct DrinkEditView: View {
         switch mode {
         case .create(let brand):
             _selectedBrand        = State(initialValue: brand)
-            let firstCat          = DrinkCategory.categories(for: brand).first ?? .sbOther
+            // categories(for:) 对每个品牌必然非空，可安全强解
+            let firstCat          = DrinkCategory.categories(for: brand).first!
             _selectedCategoryRaw  = State(initialValue: firstCat.rawValue)
             _isCustomCategory     = State(initialValue: false)
             _customCategoryText   = State(initialValue: "")

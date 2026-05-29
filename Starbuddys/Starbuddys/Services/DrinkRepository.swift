@@ -45,9 +45,9 @@ final class DrinkRepository: ObservableObject {
     func reloadUserDrinks() {
         userDrinksCache = UserDrinkStore.shared.entries.compactMap { entry in
             guard let brand = BrandType(rawValue: entry.brandRaw) else { return nil }
-            // 判断 categoryName 是否匹配标准分类；不匹配时使用品牌第一个分类作为内部占位，并记录自定义名称
+            // 判断 categoryName 是否匹配标准分类；不匹配时记录为自定义品类名，内部用该品牌首个分类占位
             let matchedCategory = DrinkCategory(rawValue: entry.categoryName)
-            let category        = matchedCategory ?? (DrinkCategory.categories(for: brand).first ?? .sbOther)
+            let category        = matchedCategory ?? DrinkCategory.categories(for: brand).first!
             let customCatName: String? = matchedCategory == nil ? entry.categoryName : nil
 
             return Drink(
@@ -85,7 +85,7 @@ final class DrinkRepository: ObservableObject {
         guard let entry = UserDrinkStore.shared.allEntries.first(where: { $0.id == id }),
               let brand = BrandType(rawValue: entry.brandRaw) else { return nil }
         let matchedCategory = DrinkCategory(rawValue: entry.categoryName)
-        let category        = matchedCategory ?? (DrinkCategory.categories(for: brand).first ?? .sbOther)
+        let category        = matchedCategory ?? DrinkCategory.categories(for: brand).first!
         let customCatName: String? = matchedCategory == nil ? entry.categoryName : nil
         return Drink(
             id: entry.id,
