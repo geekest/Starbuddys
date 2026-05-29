@@ -10,10 +10,6 @@ struct ProfileTabView: View {
     @State private var selectedBadge: Achievement? = nil
     @State private var showingAbout = false
 
-    private var drinkCounts: [String: Int] {
-        records.reduce(into: [:]) { $0[$1.drinkID, default: 0] += 1 }
-    }
-
     private var totalCups: Int { records.count }
     private var unlockedCount: Int { Set(records.map { $0.drinkID }).count }
     private var currentStreak: Int { AchievementEngine.streak(records: records) }
@@ -211,7 +207,11 @@ struct ProfileTabView: View {
 
                     // 意见反馈
                     Button {
-                        if let url = URL(string: "mailto:xjwwhw@gmail.com?subject=StarBuddys%20意见反馈") {
+                        var components = URLComponents()
+                        components.scheme = "mailto"
+                        components.path = "xjwwhw@gmail.com"
+                        components.queryItems = [URLQueryItem(name: "subject", value: "StarBuddys 意见反馈")]
+                        if let url = components.url {
                             UIApplication.shared.open(url)
                         }
                     } label: {
