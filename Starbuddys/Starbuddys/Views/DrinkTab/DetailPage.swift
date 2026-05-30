@@ -500,6 +500,7 @@ private extension Date {
     )
     DetailPage(
         drink: drink,
+        prefill: nil,
         allRecords: [],
         onSaved: { _ in },
         onCancel: {}

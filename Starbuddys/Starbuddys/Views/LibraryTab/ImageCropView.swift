@@ -149,5 +149,5 @@ struct ImageCropView: View {
         UIColor.white.withAlphaComponent(0.4).setFill()
         ctx.fill(CGRect(x: 80, y: 80, width: 240, height: 240))
     }
-    return ImageCropView(image: img, initialScale: 1.0, initialAngle: 0) { _, _, _ in }
+    ImageCropView(image: img, initialScale: 1.0, initialAngle: 0) { _, _, _ in }
 }

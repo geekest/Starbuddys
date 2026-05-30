@@ -203,7 +203,7 @@ struct DrinkTabResult: View {
         photoAvatar: "",
         tags: [.hot]
     )
-    return DrinkTabResult(
+    DrinkTabResult(
         drink: drink,
         records: [],
         onClose: {},
