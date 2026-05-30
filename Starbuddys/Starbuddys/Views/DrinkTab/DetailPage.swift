@@ -498,7 +498,7 @@ private extension Date {
         photoAvatar: "",
         tags: [.hot]
     )
-    return DetailPage(
+    DetailPage(
         drink: drink,
         allRecords: [],
         onSaved: { _ in },

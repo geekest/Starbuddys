@@ -483,5 +483,5 @@ struct DrinkEditView: View {
         tags: [.hot],
         isUserCreated: true
     )
-    return DrinkEditView(mode: .edit(drink))
+    DrinkEditView(mode: .edit(drink))
 }
