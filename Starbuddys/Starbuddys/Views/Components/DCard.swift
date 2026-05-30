@@ -26,3 +26,20 @@ struct DCardBorder<Content: View>: View {
             .shadowSm()
     }
 }
+
+#Preview("卡片容器") {
+    VStack(spacing: 16) {
+        DCard {
+            Text("标准阴影卡片")
+                .font(.sbBodyM)
+                .foregroundStyle(Color.sbInk)
+        }
+        DCardBorder {
+            Text("边框卡片")
+                .font(.sbBodyM)
+                .foregroundStyle(Color.sbInk)
+        }
+    }
+    .padding(20)
+    .background(Color.sbCanvas)
+}

@@ -236,3 +236,8 @@ private struct DrinkPickerCell: View {
         .buttonStyle(.plain)
     }
 }
+
+#Preview("饮品选择器") {
+    DrinkPickerSheet(records: []) { _ in }
+        .environmentObject(DrinkRepository.shared)
+}

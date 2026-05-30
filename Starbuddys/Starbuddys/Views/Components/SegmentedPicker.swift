@@ -175,6 +175,32 @@ struct OptionCardGroup<T: Hashable>: View {
     }
 }
 
+#Preview("分段选择器") {
+    struct Wrapper: View {
+        @State private var size: CupSize = .grande
+        @State private var temp: Temperature = .hot
+        var body: some View {
+            VStack(spacing: 20) {
+                SBSegmentedPicker(
+                    options: CupSize.allCases.map {
+                        (label: $0.displayName, sub: $0.ml, value: $0, disabled: false)
+                    },
+                    selection: $size
+                )
+                SBSegmentedPicker(
+                    options: Temperature.allCases.map {
+                        (label: $0.rawValue, sub: nil, value: $0, disabled: false)
+                    },
+                    selection: $temp
+                )
+            }
+            .padding(20)
+            .background(Color.sbCanvas)
+        }
+    }
+    return Wrapper()
+}
+
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 

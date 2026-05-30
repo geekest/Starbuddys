@@ -229,3 +229,34 @@ struct RecordDetailView: View {
         }
     }
 }
+
+#Preview("记录详情") {
+    struct Wrapper: View {
+        @Environment(\.modelContext) private var context
+        @State private var record: CupRecord?
+
+        var body: some View {
+            Group {
+                if let record {
+                    RecordDetailView(record: record)
+                        .environmentObject(DrinkRepository.shared)
+                } else {
+                    Color.sbCanvas.onAppear {
+                        let r = CupRecord(
+                            drinkID: "sb-001",
+                            cupSize: .grande,
+                            temperature: .hot,
+                            milkType: .whole,
+                            computedPrice: 40,
+                            isFirstTime: true
+                        )
+                        context.insert(r)
+                        record = r
+                    }
+                }
+            }
+        }
+    }
+    return Wrapper()
+        .modelContainer(for: CupRecord.self, inMemory: true)
+}

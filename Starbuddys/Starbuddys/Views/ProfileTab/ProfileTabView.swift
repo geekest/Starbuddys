@@ -330,3 +330,9 @@ struct ProfileTabView: View {
         ("info.circle",         "关于 StarBuddys", "v 1.0.0"),
     ]}
 }
+
+#Preview("我的 Tab") {
+    ProfileTabView()
+        .environmentObject(DrinkRepository.shared)
+        .modelContainer(for: CupRecord.self, inMemory: true)
+}

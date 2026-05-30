@@ -63,3 +63,26 @@ struct BadgeView: View {
         }
     }
 }
+
+#Preview("成就徽章") {
+    VStack(spacing: 20) {
+        Text("已解锁").font(.sbCaption).foregroundStyle(Color.sbInk2)
+        HStack(spacing: 16) {
+            BadgeView(kind: "starter",       isUnlocked: true)
+            BadgeView(kind: "full",          isUnlocked: true)
+            BadgeView(kind: "fan50",         isUnlocked: true)
+            BadgeView(kind: "cup500",        isUnlocked: true)
+            BadgeView(kind: "classicMaster", isUnlocked: true)
+        }
+        Text("未解锁").font(.sbCaption).foregroundStyle(Color.sbInk2)
+        HStack(spacing: 16) {
+            BadgeView(kind: "starter",   isUnlocked: false)
+            BadgeView(kind: "frapMaster",isUnlocked: false)
+            BadgeView(kind: "fan100",    isUnlocked: false)
+            BadgeView(kind: "cup500",    isUnlocked: false)
+            BadgeView(kind: "teaMaster", isUnlocked: false)
+        }
+    }
+    .padding(24)
+    .background(Color.sbCanvas)
+}

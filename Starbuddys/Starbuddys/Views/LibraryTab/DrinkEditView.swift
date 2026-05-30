@@ -461,3 +461,27 @@ struct DrinkEditView: View {
         dismiss()
     }
 }
+
+#Preview("新增饮品") {
+    DrinkEditView(mode: .create(brand: .starbucks))
+}
+
+#Preview("新增 Manner 饮品") {
+    DrinkEditView(mode: .create(brand: .manner))
+}
+
+#Preview("编辑用户饮品") {
+    let drink = Drink(
+        id: "usr_preview",
+        brand: .starbucks,
+        nameCN: "定制拿铁",
+        nameEN: "Custom Latte",
+        category: .sbClassicCoffee,
+        description: "我的专属定制饮品",
+        sizes: ["grande": 38],
+        photoAvatar: "",
+        tags: [.hot],
+        isUserCreated: true
+    )
+    return DrinkEditView(mode: .edit(drink))
+}

@@ -104,3 +104,20 @@ struct PillRow<T: Hashable>: View {
         }
     }
 }
+
+#Preview("胶囊标签组件") {
+    VStack(spacing: 16) {
+        HStack(spacing: 8) {
+            PillView(title: "全部",  style: .active)
+            PillView(title: "已喝",  style: .normal, badge: 12)
+            PillView(title: "未喝",  style: .soft)
+        }
+        HStack(spacing: 8) {
+            BrandBadge(brand: .starbucks)
+            BrandBadge(brand: .manner)
+            BrandBadge(brand: .luckin)
+        }
+    }
+    .padding(20)
+    .background(Color.sbCanvas)
+}

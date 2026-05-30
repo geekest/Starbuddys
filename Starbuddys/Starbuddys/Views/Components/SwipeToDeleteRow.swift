@@ -64,3 +64,28 @@ struct SwipeToDeleteRow<Content: View>: View {
         .clipped()
     }
 }
+
+#Preview("左滑删除行") {
+    VStack(spacing: 0) {
+        ForEach(["馥芮白", "燕麦拿铁", "生椰拿铁"], id: \.self) { name in
+            SwipeToDeleteRow(onDelete: {}, onTap: {}) {
+                HStack {
+                    Image(systemName: "cup.and.saucer.fill")
+                        .foregroundStyle(Color.sbGreenDeep)
+                    Text(name)
+                        .font(.sbBodyM)
+                        .foregroundStyle(Color.sbInk)
+                    Spacer()
+                    Text("向左滑动").font(.sbCaption).foregroundStyle(Color.sbInk3)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+            }
+            Divider().padding(.leading, 16)
+        }
+    }
+    .background(Color.sbPaper)
+    .cornerRadius(12)
+    .padding(20)
+    .background(Color.sbCanvas)
+}

@@ -485,3 +485,24 @@ private extension Date {
         return f.string(from: self)
     }
 }
+
+#Preview("记录详情表单") {
+    let drink = Drink(
+        id: "sb-001",
+        brand: .starbucks,
+        nameCN: "馥芮白",
+        nameEN: "Flat White",
+        category: .sbClassicCoffee,
+        description: "浓缩咖啡与醇厚牛奶的完美融合",
+        sizes: ["tall": 35, "grande": 40],
+        photoAvatar: "",
+        tags: [.hot]
+    )
+    return DetailPage(
+        drink: drink,
+        allRecords: [],
+        onSaved: { _ in },
+        onCancel: {}
+    )
+    .modelContainer(for: CupRecord.self, inMemory: true)
+}

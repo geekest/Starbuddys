@@ -172,3 +172,27 @@ struct DrinkTabIdle: View {
         }
     }
 }
+
+#Preview("喝一杯·待机页") {
+    DrinkTabIdle(
+        records: [],
+        isBrewing: false,
+        onBrew: {},
+        onPickerOpen: {},
+        onRepeat: { _ in }
+    )
+    .environmentObject(DrinkRepository.shared)
+    .background(Color.sbCanvas)
+}
+
+#Preview("喝一杯·冲煮中") {
+    DrinkTabIdle(
+        records: [],
+        isBrewing: true,
+        onBrew: {},
+        onPickerOpen: {},
+        onRepeat: { _ in }
+    )
+    .environmentObject(DrinkRepository.shared)
+    .background(Color.sbCanvas)
+}

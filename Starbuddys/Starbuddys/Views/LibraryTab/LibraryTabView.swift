@@ -537,3 +537,9 @@ struct DrinkDetailReadOnly: View {
         }
     }
 }
+
+#Preview("饮品库 Tab") {
+    LibraryTabView()
+        .environmentObject(DrinkRepository.shared)
+        .modelContainer(for: CupRecord.self, inMemory: true)
+}

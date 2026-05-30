@@ -190,3 +190,25 @@ struct DrinkTabResult: View {
         .padding(.bottom, 16)
     }
 }
+
+#Preview("推荐结果卡片") {
+    let drink = Drink(
+        id: "sb-001",
+        brand: .starbucks,
+        nameCN: "馥芮白",
+        nameEN: "Flat White",
+        category: .sbClassicCoffee,
+        description: "浓缩咖啡与醇厚牛奶的完美融合，温柔顺滑",
+        sizes: ["tall": 35, "grande": 40],
+        photoAvatar: "",
+        tags: [.hot]
+    )
+    return DrinkTabResult(
+        drink: drink,
+        records: [],
+        onClose: {},
+        onRefresh: {},
+        onRecord: {}
+    )
+    .background(Color.sbCanvas)
+}

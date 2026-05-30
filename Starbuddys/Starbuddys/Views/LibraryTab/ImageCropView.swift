@@ -140,3 +140,14 @@ struct ImageCropView: View {
         }
     }
 }
+
+#Preview("图片裁剪页") {
+    let renderer = UIGraphicsImageRenderer(size: CGSize(width: 400, height: 400))
+    let img = renderer.image { ctx in
+        UIColor.systemTeal.setFill()
+        ctx.fill(CGRect(x: 0, y: 0, width: 400, height: 400))
+        UIColor.white.withAlphaComponent(0.4).setFill()
+        ctx.fill(CGRect(x: 80, y: 80, width: 240, height: 240))
+    }
+    return ImageCropView(image: img, initialScale: 1.0, initialAngle: 0) { _, _, _ in }
+}
