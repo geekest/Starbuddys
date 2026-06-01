@@ -34,6 +34,7 @@ struct LibraryTabView: View {
     @State private var navToDrink: Drink? = nil
     @State private var recordDrink: Drink? = nil
     @State private var showAddDrink = false
+    @State private var editLockedDrink: Drink? = nil
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
@@ -217,7 +218,14 @@ struct LibraryTabView: View {
                     .padding(.bottom, 24)
                 }
                 .scrollIndicators(.hidden)
+
+                // 锁定饮品自定义弹窗
+                if showLockedAlert, let drink = lockedDrink {
+                    lockedDrinkDialog(drink: drink)
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                }
             }
+            .animation(.easeInOut(duration: 0.18), value: showLockedAlert)
             .navigationBarHidden(true)
             .onChange(of: brand) { _, _ in quickFilter = nil }
             .navigationDestination(item: $navToDrink) { drink in
@@ -227,13 +235,9 @@ struct LibraryTabView: View {
                 DrinkEditView(mode: .create(brand: brand))
                     .environmentObject(repo)
             }
-            .alert("还没喝过这款", isPresented: $showLockedAlert) {
-                Button("去记一杯") {
-                    if let d = lockedDrink { recordDrink = d }
-                }
-                Button("取消", role: .cancel) {}
-            } message: {
-                Text(lockedDrink.map { "「\($0.nameCN)」等你解锁" } ?? "")
+            .sheet(item: $editLockedDrink) { drink in
+                DrinkEditView(mode: .edit(drink))
+                    .environmentObject(repo)
             }
             .sheet(item: $recordDrink) { drink in
                 NavigationStack {
@@ -246,6 +250,85 @@ struct LibraryTabView: View {
                     )
                 }
             }
+        }
+    }
+
+    // MARK: - 锁定饮品弹窗
+
+    private func lockedDrinkDialog(drink: Drink) -> some View {
+        ZStack {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation { showLockedAlert = false }
+                }
+
+            VStack(spacing: 0) {
+                // 标题 + 消息
+                VStack(spacing: 6) {
+                    Text("还没喝过这款")
+                        .font(.sbTitleM)
+                        .foregroundStyle(Color.sbInk)
+                    Text("「\(drink.nameCN)」等你解锁")
+                        .font(.sbBodyS)
+                        .foregroundStyle(Color.sbInk2)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 22)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 20)
+
+                Divider()
+
+                // 第一行：去记一杯 + 编辑饮品
+                HStack(spacing: 0) {
+                    Button {
+                        withAnimation { showLockedAlert = false }
+                        recordDrink = drink
+                    } label: {
+                        Text("去记一杯")
+                            .font(.sbBodyMB)
+                            .foregroundStyle(Color.sbGreenDeep)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 15)
+                    }
+                    .buttonStyle(.plain)
+
+                    Rectangle()
+                        .fill(Color.sbLine)
+                        .frame(width: 0.5, height: 44)
+
+                    Button {
+                        withAnimation { showLockedAlert = false }
+                        editLockedDrink = drink
+                    } label: {
+                        Text("编辑饮品")
+                            .font(.sbBodyMB)
+                            .foregroundStyle(Color.sbInk1)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 15)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Divider()
+
+                // 第二行：取消
+                Button {
+                    withAnimation { showLockedAlert = false }
+                } label: {
+                    Text("取消")
+                        .font(.sbBodyM)
+                        .foregroundStyle(Color.sbInk3)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                }
+                .buttonStyle(.plain)
+            }
+            .background(Color.sbPaper)
+            .cornerRadius(16)
+            .shadowLg()
+            .padding(.horizontal, 36)
         }
     }
 
