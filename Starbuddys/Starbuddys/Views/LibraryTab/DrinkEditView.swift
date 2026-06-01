@@ -141,8 +141,7 @@ struct DrinkEditView: View {
             .confirmationDialog("删除饮品", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
                 Button("确认删除", role: .destructive) {
                     if let id = existingEntryID {
-                        UserDrinkStore.shared.hide(id: id)
-                        DrinkRepository.shared.reloadUserDrinks()
+                        DrinkStore.shared.hide(id: id)
                     }
                     dismiss()
                 }
@@ -411,8 +410,8 @@ struct DrinkEditView: View {
     private func loadExistingPhoto() {
         guard case .edit(let drink) = mode,
               let fileName = drink.userPhotoFileName else { return }
-        croppedImage = UserDrinkStore.shared.loadPhoto(fileName: fileName)
-        if let entry = UserDrinkStore.shared.allEntries.first(where: { $0.id == drink.id }) {
+        croppedImage = DrinkStore.shared.loadPhoto(fileName: fileName)
+        if let entry = DrinkStore.shared.allEntries.first(where: { $0.id == drink.id }) {
             photoScale = entry.photoScale
             photoAngle = entry.photoAngle
         }
@@ -428,8 +427,9 @@ struct DrinkEditView: View {
 
         switch mode {
         case .create:
-            // 先构建 entry，拿到固定 id，再用这个 id 存照片
-            var entry = UserDrinkEntry(
+            let newID = "usr_" + UUID().uuidString
+            var entry = DrinkEntry(
+                id:               newID,
                 brandRaw:         selectedBrand.rawValue,
                 nameCN:           nameCN.trimmingCharacters(in: .whitespaces),
                 nameEN:           nameEN,
@@ -437,27 +437,26 @@ struct DrinkEditView: View {
                 drinkDescription: descriptionText
             )
             if let img = croppedImage, let jpegData = img.jpegData(compressionQuality: 0.85) {
-                entry.photoFileName = UserDrinkStore.shared.savePhoto(data: jpegData, entryID: entry.id)
+                entry.photoFileName = DrinkStore.shared.savePhoto(data: jpegData, entryID: entry.id)
             }
             entry.photoScale = photoScale
             entry.photoAngle = photoAngle
-            UserDrinkStore.shared.add(entry)
+            DrinkStore.shared.add(entry)
 
         case .edit(let drink):
-            guard var entry = UserDrinkStore.shared.allEntries.first(where: { $0.id == drink.id }) else { return }
+            guard var entry = DrinkStore.shared.allEntries.first(where: { $0.id == drink.id }) else { return }
             entry.nameCN           = nameCN.trimmingCharacters(in: .whitespaces)
             entry.nameEN           = nameEN
             entry.categoryName     = finalCatName
             entry.drinkDescription = descriptionText
             if let img = croppedImage, let jpegData = img.jpegData(compressionQuality: 0.85) {
-                entry.photoFileName = UserDrinkStore.shared.savePhoto(data: jpegData, entryID: entry.id)
+                entry.photoFileName = DrinkStore.shared.savePhoto(data: jpegData, entryID: entry.id)
             }
             entry.photoScale = photoScale
             entry.photoAngle = photoAngle
-            UserDrinkStore.shared.update(entry)
+            DrinkStore.shared.update(entry)
         }
 
-        DrinkRepository.shared.reloadUserDrinks()
         dismiss()
     }
 }

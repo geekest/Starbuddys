@@ -5,71 +5,16 @@ import Combine
 final class DrinkRepository: ObservableObject {
     static let shared = DrinkRepository()
 
-    /// 对外公开的全量饮品（seed + 用户自建，不含已删除）
+    /// 对外公开的全量饮品（不含已删除），由 DrinkStore.$entries 驱动
     @Published private(set) var drinks: [Drink] = []
 
-    private var seedDrinks: [Drink] = []
-    private var userDrinksCache: [Drink] = []
+    private var cancellable: AnyCancellable?
 
     private init() {
-        load()
-        reloadUserDrinks()
-    }
-
-    // MARK: - 加载 seed JSON
-
-    private func load() {
-        var combined: [Drink] = []
-        for name in ["drinks.seed", "manner.seed", "luckin.seed"] {
-            guard let url = Bundle.main.url(forResource: name, withExtension: "json") else {
-                if name == "drinks.seed" {
-                    assertionFailure("\(name).json not found in bundle")
-                }
-                continue
+        cancellable = DrinkStore.shared.$entries
+            .sink { [weak self] entries in
+                self?.drinks = entries.map { Drink(from: $0) }
             }
-            do {
-                let data   = try Data(contentsOf: url)
-                let parsed = try JSONDecoder().decode(DrinkSeedData.self, from: data).drinks
-                combined.append(contentsOf: parsed)
-            } catch {
-                assertionFailure("Failed to load \(name).json: \(error)")
-            }
-        }
-        seedDrinks = combined
-        refreshDrinks()
-    }
-
-    // MARK: - 用户饮品管理
-
-    /// 将 UserDrinkStore 中的条目转换为 Drink 对象并刷新缓存
-    func reloadUserDrinks() {
-        userDrinksCache = UserDrinkStore.shared.entries.compactMap { entry in
-            guard let brand = BrandType(rawValue: entry.brandRaw) else { return nil }
-            // 判断 categoryName 是否匹配标准分类；不匹配时记录为自定义品类名，内部用该品牌首个分类占位
-            let matchedCategory = DrinkCategory(rawValue: entry.categoryName)
-            let category        = matchedCategory ?? DrinkCategory.categories(for: brand).first!
-            let customCatName: String? = matchedCategory == nil ? entry.categoryName : nil
-
-            return Drink(
-                id: entry.id,
-                brand: brand,
-                nameCN: entry.nameCN,
-                nameEN: entry.nameEN,
-                category: category,
-                description: entry.drinkDescription,
-                sizes: [:],
-                photoAvatar: "",
-                tags: [],
-                customCategoryName: customCatName,
-                userPhotoFileName: entry.photoFileName,
-                isUserCreated: true
-            )
-        }
-        refreshDrinks()
-    }
-
-    private func refreshDrinks() {
-        drinks = seedDrinks + userDrinksCache
     }
 
     // MARK: - 查询
@@ -78,29 +23,10 @@ final class DrinkRepository: ObservableObject {
         drinks.first { $0.id == id }
     }
 
-    /// 历史记录专用查询，包含已逻辑删除的用户饮品
+    /// 历史记录专用：包含已逻辑删除的饮品
     func drinkForHistory(id: String) -> Drink? {
         if let found = drinks.first(where: { $0.id == id }) { return found }
-        // 在隐藏的用户饮品中查找
-        guard let entry = UserDrinkStore.shared.allEntries.first(where: { $0.id == id }),
-              let brand = BrandType(rawValue: entry.brandRaw) else { return nil }
-        let matchedCategory = DrinkCategory(rawValue: entry.categoryName)
-        let category        = matchedCategory ?? DrinkCategory.categories(for: brand).first!
-        let customCatName: String? = matchedCategory == nil ? entry.categoryName : nil
-        return Drink(
-            id: entry.id,
-            brand: brand,
-            nameCN: entry.nameCN,
-            nameEN: entry.nameEN,
-            category: category,
-            description: entry.drinkDescription,
-            sizes: [:],
-            photoAvatar: "",
-            tags: [],
-            customCategoryName: customCatName,
-            userPhotoFileName: entry.photoFileName,
-            isUserCreated: true
-        )
+        return DrinkStore.shared.entry(id: id).map { Drink(from: $0) }
     }
 
     func drinks(for category: DrinkCategory) -> [Drink] {

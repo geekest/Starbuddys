@@ -76,10 +76,10 @@ struct LibraryTabView: View {
         return opts
     }
 
-    /// 提取当前品牌下的用户自定义品类名（去重保序）
+    /// 提取当前品牌下的自定义品类名（去重保序）
     private func customCategoryNames(from drinks: [Drink]) -> [String] {
         drinks
-            .filter { $0.isUserCreated && $0.customCategoryName != nil }
+            .filter { $0.customCategoryName != nil }
             .compactMap { $0.customCategoryName }
             .reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
     }
@@ -517,13 +517,11 @@ struct DrinkDetailReadOnly: View {
             NavHeaderView(
                 title: drink.nameCN,
                 leftAction: { dismiss() },
-                rightContent: drink.isUserCreated
-                    ? AnyView(
-                        Button("编辑") { showEdit = true }
-                            .font(.sbBodyMB)
-                            .foregroundStyle(Color.sbInk)
-                      )
-                    : nil
+                rightContent: AnyView(
+                    Button("编辑") { showEdit = true }
+                        .font(.sbBodyMB)
+                        .foregroundStyle(Color.sbInk)
+                )
             )
             .background(Color.sbCanvas.opacity(0.95))
         }

@@ -44,7 +44,7 @@ struct DrinkAvatar: View {
     @ViewBuilder
     private var imageOrPlaceholder: some View {
         if let fileName = drink.userPhotoFileName,
-           let uiImage = UserDrinkStore.shared.loadPhoto(fileName: fileName) {
+           let uiImage = DrinkStore.shared.loadPhoto(fileName: fileName) {
             // 用户上传的自定义照片
             Image(uiImage: uiImage)
                 .resizable()

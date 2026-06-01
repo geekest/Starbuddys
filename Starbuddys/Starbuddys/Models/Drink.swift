@@ -144,6 +144,28 @@ struct Drink: Identifiable, Codable, Hashable {
         }
         return name
     }
+
+    /// 从统一存储条目构造 Drink 对象
+    init(from entry: DrinkEntry) {
+        let brand           = BrandType(rawValue: entry.brandRaw) ?? .starbucks
+        let matchedCategory = DrinkCategory(rawValue: entry.categoryName)
+        let category        = matchedCategory ?? DrinkCategory.categories(for: brand).first!
+        let customCatName   = matchedCategory == nil ? entry.categoryName : nil
+        self.init(
+            id: entry.id,
+            brand: brand,
+            nameCN: entry.nameCN,
+            nameEN: entry.nameEN,
+            category: category,
+            description: entry.drinkDescription,
+            sizes: entry.sizes,
+            photoAvatar: entry.photoAvatar,
+            tags: entry.tagsRaw.compactMap { DrinkTag(rawValue: $0) },
+            customCategoryName: customCatName,
+            userPhotoFileName: entry.photoFileName,
+            isUserCreated: !entry.isBuiltIn
+        )
+    }
 }
 
 struct DrinkSeedData: Codable {
