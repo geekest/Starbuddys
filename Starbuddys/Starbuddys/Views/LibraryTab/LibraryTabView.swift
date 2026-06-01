@@ -340,7 +340,7 @@ struct LibraryTabView: View {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(section.drinks) { drink in
                     let count = drinkCounts[drink.id] ?? 0
-                    let locked = count == 0
+                    let locked = count == 0 && !drink.isUserCreated
                     LibraryCellView(drink: drink, count: count, isLocked: locked) {
                         if locked {
                             lockedDrink = drink
