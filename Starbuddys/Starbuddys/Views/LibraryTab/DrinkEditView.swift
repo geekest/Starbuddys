@@ -121,7 +121,6 @@ struct DrinkEditView: View {
                         .foregroundStyle(Color.sbInk1)
                 }
                 if isEditMode {
-                    // 编辑模式下，右上角显示红色胶囊删除按钮
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             showDeleteConfirm = true
@@ -135,6 +134,7 @@ struct DrinkEditView: View {
                                 .background(Color.red)
                                 .clipShape(Capsule())
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
