@@ -1,13 +1,14 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 
 struct ProfileTabView: View {
     @Query(sort: \CupRecord.drunkAt, order: .reverse) private var records: [CupRecord]
     @EnvironmentObject private var repo: DrinkRepository
+    @Environment(\.requestReview) private var requestReview
 
-    private var drinkCounts: [String: Int] {
-        records.reduce(into: [:]) { $0[$1.drinkID, default: 0] += 1 }
-    }
+    @State private var selectedBadge: Achievement? = nil
+    @State private var showingAbout = false
 
     private var totalCups: Int { records.count }
     private var unlockedCount: Int { Set(records.map { $0.drinkID }).count }
@@ -15,22 +16,15 @@ struct ProfileTabView: View {
     private var totalSpent: Int { records.reduce(0) { $0 + $1.computedPrice } }
     private var level: Int { AchievementEngine.level(totalCups: totalCups) }
     private var levelProgress: Double { AchievementEngine.levelProgress(totalCups: totalCups) }
-    private var joinDays: Int { AchievementEngine.joinDays(records: records) }
 
     private var achievementGroups: [AchievementGroupData] {
         AchievementEngine.compute(records: records, drinks: repo.drinks)
-    }
-
-    private var favoriteDrink: Drink? {
-        guard let topID = drinkCounts.max(by: { $0.value < $1.value })?.key else { return nil }
-        return repo.drink(id: topID)
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.sbCanvas.ignoresSafeArea()
-                // 覆盖顶部过度下拉区域，防止绿色边界露出
                 VStack(spacing: 0) {
                     Color.sbGreenDeep
                         .ignoresSafeArea(edges: .top)
@@ -39,10 +33,8 @@ struct ProfileTabView: View {
                 }
                 ScrollView {
                     VStack(spacing: 0) {
-                        // User Header
                         userHeader
 
-                        // Achievement section
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
                                 Text("成就徽章")
@@ -59,7 +51,6 @@ struct ProfileTabView: View {
                                 .padding(.bottom, 12)
                         }
 
-                        // Settings
                         settingsSection
                             .padding(.horizontal, 20)
                             .padding(.top, 8)
@@ -70,6 +61,12 @@ struct ProfileTabView: View {
                 .ignoresSafeArea(edges: .top)
             }
             .navigationBarHidden(true)
+            .sheet(item: $selectedBadge) { badge in
+                AchievementDetailSheet(achievement: badge)
+            }
+            .sheet(isPresented: $showingAbout) {
+                AboutView()
+            }
         }
     }
 
@@ -83,36 +80,7 @@ struct ProfileTabView: View {
             .ignoresSafeArea(edges: .top)
 
             VStack(spacing: 0) {
-                // Avatar + name
-                HStack(spacing: 14) {
-                    ZStack {
-                        Circle()
-                            .fill(.white)
-                            .frame(width: 64, height: 64)
-                            .shadowMd()
-                        if let drink = favoriteDrink {
-                            DrinkAvatar(drink: drink, size: 56)
-                        } else {
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 28))
-                                .foregroundStyle(Color.sbGreenDeep.opacity(0.6))
-                        }
-                    }
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Harvey")
-                            .font(.system(size: 18, weight: .heavy))
-                            .foregroundStyle(.white)
-                        Text("加入 \(joinDays) 天 · Lv.\(level) 咖啡迷")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-
-                // Level progress
+                // 等级进度条
                 VStack(spacing: 6) {
                     HStack {
                         Text("Lv.\(level) · \(totalCups) 杯")
@@ -137,16 +105,16 @@ struct ProfileTabView: View {
                 .background(.white.opacity(0.10))
                 .cornerRadius(12)
                 .padding(.horizontal, 20)
-                .padding(.top, 14)
+                .padding(.top, 60)
 
-                // Quick stats
+                // 四项统计
                 HStack {
                     ForEach([
                         ("\(totalCups)", "总杯数"),
                         ("\(unlockedCount)", "已解锁"),
                         ("\(currentStreak)", "天连击"),
                         ("¥\(totalSpent >= 1000 ? "\(totalSpent / 1000).\(totalSpent % 1000 / 100)k" : "\(totalSpent)")", "累计花费"),
-                    ], id: \.0) { value, label in
+                    ], id: \.1) { value, label in
                         VStack(spacing: 2) {
                             Text(value)
                                 .font(.system(size: 18, weight: .heavy, design: .monospaced))
@@ -166,56 +134,6 @@ struct ProfileTabView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 14)
                 .padding(.bottom, 20)
-            }
-        }
-    }
-
-    // MARK: Achievement group card
-    private func achievementGroupCard(_ group: AchievementGroupData) -> some View {
-        DCardBorder(padding: 14) {
-            VStack(spacing: 12) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(group.title)
-                            .font(.sbBodyMB)
-                            .foregroundStyle(Color.sbInk)
-                        Text(group.subtitle)
-                            .font(.sbCaption)
-                            .foregroundStyle(Color.sbInk2)
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                Capsule().fill(Color.sbGreenPale).frame(height: 4)
-                                Capsule().fill(Color.sbGreenDeep)
-                                    .frame(width: geo.size.width * group.groupProgress, height: 4)
-                                    .animation(.easeOut(duration: 0.4), value: group.groupProgress)
-                            }
-                        }
-                        .frame(height: 4)
-                        .frame(maxWidth: 160)
-                    }
-                    Spacer()
-                }
-
-                // 4 badges
-                HStack(spacing: 0) {
-                    ForEach(group.badges) { badge in
-                        VStack(spacing: 4) {
-                            BadgeView(kind: badge.badgeKind, isUnlocked: badge.isUnlocked, size: 52)
-
-                            Text(badge.name)
-                                .font(.system(size: 10, weight: badge.isUnlocked ? .bold : .medium))
-                                .foregroundStyle(badge.isUnlocked ? Color.sbInk : Color.sbInk3)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .fixedSize(horizontal: false, vertical: true)
-
-                            Text("\(min(badge.progress, badge.target))/\(badge.target)")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundStyle(badge.isUnlocked ? Color.sbGreenDeep : Color.sbInk3)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                }
             }
         }
     }
@@ -261,6 +179,9 @@ struct ProfileTabView: View {
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundStyle(badge.isUnlocked ? Color.sbGreenDeep : Color.sbInk3)
                         }
+                        .onTapGesture {
+                            selectedBadge = badge
+                        }
                     }
                 }
             }
@@ -276,41 +197,47 @@ struct ProfileTabView: View {
 
             DCardBorder(padding: 0) {
                 VStack(spacing: 0) {
-                    ForEach(settingsItems.indices, id: \.self) { i in
-                        let item = settingsItems[i]
-                        HStack(spacing: 12) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.sbGreenPale)
-                                    .frame(width: 32, height: 32)
-                                Image(systemName: item.icon)
-                                    .font(.system(size: 15))
-                                    .foregroundStyle(Color.sbGreenDeep)
-                            }
-
-                            Text(item.title)
-                                .font(.sbBodyM)
-                                .foregroundStyle(Color.sbInk)
-
-                            Spacer()
-
-                            if let sub = item.subtitle {
-                                Text(sub)
-                                    .font(.sbCaption)
-                                    .foregroundStyle(Color.sbInk3)
-                            }
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color.sbInk3)
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 14)
-
-                        if i < settingsItems.count - 1 {
-                            Divider().padding(.leading, 56)
-                        }
+                    // 分享给朋友
+                    ShareLink(item: "我在用 StarBuddys 记录每一杯星巴克和 Manner 饮品，推荐给你！") {
+                        settingsRowView(icon: "square.and.arrow.up", title: "分享给朋友", subtitle: nil)
                     }
+                    .buttonStyle(.plain)
+
+                    Divider().padding(.leading, 56)
+
+                    // 意见反馈
+                    Button {
+                        var components = URLComponents()
+                        components.scheme = "mailto"
+                        components.path = "xjwwhw@gmail.com"
+                        components.queryItems = [URLQueryItem(name: "subject", value: "StarBuddys 意见反馈")]
+                        if let url = components.url {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        settingsRowView(icon: "message", title: "意见反馈", subtitle: nil)
+                    }
+                    .buttonStyle(.plain)
+
+                    Divider().padding(.leading, 56)
+
+                    // 给我们评价
+                    Button {
+                        requestReview()
+                    } label: {
+                        settingsRowView(icon: "star", title: "给我们评价", subtitle: "★★★★☆")
+                    }
+                    .buttonStyle(.plain)
+
+                    Divider().padding(.leading, 56)
+
+                    // 关于 StarBuddys
+                    Button {
+                        showingAbout = true
+                    } label: {
+                        settingsRowView(icon: "info.circle", title: "关于 StarBuddys", subtitle: "v 1.0.0")
+                    }
+                    .buttonStyle(.plain)
                 }
             }
 
@@ -322,11 +249,34 @@ struct ProfileTabView: View {
         }
     }
 
-    private var settingsItems: [(icon: String, title: String, subtitle: String?)] {[
-        ("square.and.arrow.up", "分享给朋友", nil),
-        ("globe",               "语言",        "简体中文"),
-        ("message",             "意见反馈",    nil),
-        ("star",                "给我们评价",  "★★★★☆"),
-        ("info.circle",         "关于 StarBuddys", "v 1.0.0"),
-    ]}
+    private func settingsRowView(icon: String, title: String, subtitle: String?) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.sbGreenPale)
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.sbGreenDeep)
+            }
+
+            Text(title)
+                .font(.sbBodyM)
+                .foregroundStyle(Color.sbInk)
+
+            Spacer()
+
+            if let sub = subtitle {
+                Text(sub)
+                    .font(.sbCaption)
+                    .foregroundStyle(Color.sbInk3)
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color.sbInk3)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+    }
 }

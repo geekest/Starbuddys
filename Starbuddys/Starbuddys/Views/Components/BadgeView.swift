@@ -8,41 +8,53 @@ struct BadgeView: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(isUnlocked ? badgeColor.opacity(0.15) : Color.sbLine.opacity(0.25))
+                .fill(
+                    isUnlocked
+                        ? LinearGradient(
+                            colors: [badgeColor.opacity(0.22), badgeColor.opacity(0.08)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing)
+                        : LinearGradient(
+                            colors: [Color.sbLine.opacity(0.22), Color.sbLine.opacity(0.10)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing)
+                )
                 .frame(width: size, height: size)
 
             if isUnlocked {
-                badgeImage
-                    .font(.system(size: size * 0.42))
-                    .foregroundStyle(badgeColor)
-            } else {
-                badgeImage
-                    .font(.system(size: size * 0.38))
-                    .foregroundStyle(Color.sbInk3.opacity(0.35))
+                Circle()
+                    .strokeBorder(badgeColor.opacity(0.38), lineWidth: 1.5)
+                    .frame(width: size, height: size)
+            }
 
+            Text(badgeEmoji)
+                .font(.system(size: size * 0.48))
+                .grayscale(isUnlocked ? 0 : 1)
+                .opacity(isUnlocked ? 1 : 0.28)
+
+            if !isUnlocked {
                 Image(systemName: "lock.fill")
-                    .font(.system(size: size * 0.2))
-                    .foregroundStyle(Color.sbInk3.opacity(0.7))
-                    .offset(x: size * 0.22, y: size * 0.22)
+                    .font(.system(size: size * 0.17, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(3)
+                    .background(Circle().fill(Color.sbInk3.opacity(0.72)))
+                    .offset(x: size * 0.24, y: size * 0.24)
             }
         }
     }
 
-    @ViewBuilder
-    private var badgeImage: some View {
+    private var badgeEmoji: String {
         switch kind {
-        case "starter":       Image(systemName: "star.circle.fill")
-        case "half":          Image(systemName: "chart.pie.fill")
-        case "full":          Image(systemName: "crown.fill")
-        case "classicMaster": Image(systemName: "cup.and.saucer.fill")
-        case "frapMaster":    Image(systemName: "snowflake")
-        case "teaMaster":     Image(systemName: "leaf.fill")
-        case "fan10":         Image(systemName: "heart.fill")
-        case "fan50":         Image(systemName: "flame.fill")
-        case "fan100":        Image(systemName: "infinity")
-        case "cup100":        Image(systemName: "flag.fill")
-        case "cup500":        Image(systemName: "trophy.fill")
-        default:              Image(systemName: "seal.fill")
+        case "starter":       return "⭐"
+        case "half":          return "🌟"
+        case "full":          return "👑"
+        case "classicMaster": return "☕"
+        case "frapMaster":    return "❄️"
+        case "teaMaster":     return "🍵"
+        case "fan10":         return "💖"
+        case "fan50":         return "🔥"
+        case "fan100":        return "♾️"
+        case "cup100":        return "🚩"
+        case "cup500":        return "🏆"
+        default:              return "🎖️"
         }
     }
 
