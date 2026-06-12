@@ -337,6 +337,8 @@ struct DrinkEditView: View {
         }
     }
 
+    private var hasImage: Bool { croppedImage != nil || rawPickedImage != nil }
+
     private var photoSection: some View {
         DCard {
             VStack(alignment: .leading, spacing: 10) {
@@ -345,12 +347,12 @@ struct DrinkEditView: View {
                     .foregroundStyle(Color.sbInk)
 
                 HStack(spacing: 16) {
-                    // 预览圆形
+                    // 预览圆形：优先裁剪结果，其次原图（含 asset 图）
                     ZStack {
                         Circle()
                             .fill(Color.sbGreenTint)
                             .frame(width: 72, height: 72)
-                        if let img = croppedImage {
+                        if let img = croppedImage ?? rawPickedImage {
                             Image(uiImage: img)
                                 .resizable()
                                 .scaledToFill()
@@ -365,7 +367,7 @@ struct DrinkEditView: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         PhotosPicker(selection: $pickerItem, matching: .images) {
-                            Text(croppedImage == nil ? "从相册选取" : "重新选取")
+                            Text(hasImage ? "更换图片" : "从相册选取")
                                 .font(.sbBodyS)
                                 .foregroundStyle(Color.sbGreenDeep)
                                 .padding(.horizontal, 14)
@@ -374,15 +376,12 @@ struct DrinkEditView: View {
                                 .clipShape(Capsule())
                         }
 
-                        if croppedImage != nil {
+                        // 有原图时（含 asset 图和用户上传图）均可进入裁剪调整
+                        if rawPickedImage != nil {
                             Button {
-                                // 重新进入裁剪界面（用已有图片）
-                                if let img = rawPickedImage {
-                                    showCropView = true
-                                    _ = img
-                                }
+                                showCropView = true
                             } label: {
-                                Text("重新裁剪")
+                                Text("调整大小")
                                     .font(.sbBodyS)
                                     .foregroundStyle(Color.sbInk2)
                                     .padding(.horizontal, 14)
@@ -397,7 +396,7 @@ struct DrinkEditView: View {
                     Spacer()
                 }
 
-                Text("选取后需在裁剪界面调整为正方形")
+                Text("选取后需在裁剪界面调整大小与位置")
                     .font(.sbLabel)
                     .foregroundStyle(Color.sbInk3)
             }
@@ -406,14 +405,27 @@ struct DrinkEditView: View {
 
     // MARK: - 逻辑
 
-    /// 编辑模式下，加载已有的照片
+    /// 编辑模式下加载已有图片（用户上传照片或内置 asset 图）
     private func loadExistingPhoto() {
-        guard case .edit(let drink) = mode,
-              let fileName = drink.userPhotoFileName else { return }
-        croppedImage = DrinkStore.shared.loadPhoto(fileName: fileName)
+        guard case .edit(let drink) = mode else { return }
+
+        // 加载已保存的缩放/旋转参数
         if let entry = DrinkStore.shared.allEntries.first(where: { $0.id == drink.id }) {
             photoScale = entry.photoScale
             photoAngle = entry.photoAngle
+        }
+
+        // 优先加载用户上传的照片（Documents 目录）
+        if let fileName = drink.userPhotoFileName,
+           let img = DrinkStore.shared.loadPhoto(fileName: fileName) {
+            croppedImage  = img
+            rawPickedImage = img  // 同步到 rawPickedImage 使"调整大小"可用
+            return
+        }
+
+        // 内置 asset 图片：载入 rawPickedImage，不设 croppedImage（预览用原图，保存才覆盖）
+        if let assetImage = UIImage(named: drink.imageAssetName) {
+            rawPickedImage = assetImage
         }
     }
 
