@@ -280,3 +280,9 @@ struct ProfileTabView: View {
         .padding(.vertical, 14)
     }
 }
+
+#Preview("我的 Tab") {
+    ProfileTabView()
+        .environmentObject(DrinkRepository.shared)
+        .modelContainer(for: CupRecord.self, inMemory: true)
+}

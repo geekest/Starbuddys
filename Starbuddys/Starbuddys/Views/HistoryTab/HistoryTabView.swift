@@ -641,3 +641,9 @@ struct HistoryTabView: View {
         return (drink, count)
     }
 }
+
+#Preview("历史 Tab") {
+    HistoryTabView()
+        .environmentObject(DrinkRepository.shared)
+        .modelContainer(for: CupRecord.self, inMemory: true)
+}

@@ -229,3 +229,36 @@ struct RecordDetailView: View {
         }
     }
 }
+
+/// 记录详情预览的包装视图：进入时自动插入一条测试记录
+private struct RecordDetailPreviewWrapper: View {
+    @Environment(\.modelContext) private var context
+    @State private var record: CupRecord?
+
+    var body: some View {
+        Group {
+            if let record {
+                RecordDetailView(record: record)
+                    .environmentObject(DrinkRepository.shared)
+            } else {
+                Color.sbCanvas.onAppear {
+                    let r = CupRecord(
+                        drinkID: "sb-001",
+                        cupSize: .grande,
+                        temperature: .hot,
+                        milkType: .whole,
+                        computedPrice: 40,
+                        isFirstTime: true
+                    )
+                    context.insert(r)
+                    record = r
+                }
+            }
+        }
+    }
+}
+
+#Preview("记录详情") {
+    RecordDetailPreviewWrapper()
+        .modelContainer(for: CupRecord.self, inMemory: true)
+}

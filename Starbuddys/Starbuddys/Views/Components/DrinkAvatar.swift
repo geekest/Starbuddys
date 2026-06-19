@@ -43,7 +43,16 @@ struct DrinkAvatar: View {
 
     @ViewBuilder
     private var imageOrPlaceholder: some View {
-        if UIImage(named: drink.imageAssetName) != nil {
+        if let fileName = drink.userPhotoFileName,
+           let uiImage = DrinkStore.shared.loadPhoto(fileName: fileName) {
+            // 用户上传的自定义照片
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .clipShape(Circle())
+                .padding(size * 0.08)
+        } else if UIImage(named: drink.imageAssetName) != nil {
+            // Asset Catalog 中的 seed 图片
             Image(drink.imageAssetName)
                 .resizable()
                 .scaledToFit()
@@ -55,6 +64,33 @@ struct DrinkAvatar: View {
                 .foregroundStyle(Color.sbGreenDeep.opacity(0.55))
         }
     }
+}
+
+private let _previewDrink = Drink(
+    id: "preview", brand: .starbucks, nameCN: "馥芮白", nameEN: "Flat White",
+    category: .sbClassicCoffee, description: "浓缩咖啡与醇厚牛奶的完美融合",
+    sizes: ["grande": 40], photoAvatar: "", tags: [.hot]
+)
+
+#Preview("饮品头像") {
+    VStack(spacing: 20) {
+        HStack(spacing: 20) {
+            DrinkAvatar(drink: _previewDrink, size: 80)
+            DrinkAvatar(drink: _previewDrink, size: 64, isLocked: true)
+            DrinkAvatar(drink: _previewDrink, size: 56, count: 5)
+            DrinkAvatar(drink: _previewDrink, size: 48, count: 25)
+        }
+        HStack(spacing: 16) {
+            let manner = Drink(id: "mn", brand: .manner, nameCN: "燕麦拿铁", nameEN: "Oat Latte",
+                               category: .mnOat, description: "", sizes: [:], photoAvatar: "", tags: [])
+            let luckin  = Drink(id: "lk", brand: .luckin,  nameCN: "生椰拿铁", nameEN: "Coconut Latte",
+                                category: .lkLightMilk, description: "", sizes: [:], photoAvatar: "", tags: [])
+            DrinkAvatar(drink: manner, size: 64)
+            DrinkAvatar(drink: luckin,  size: 64)
+        }
+    }
+    .padding(24)
+    .background(Color.sbCanvas)
 }
 
 // Minimal avatar for records (accepts drinkID + repo lookup)

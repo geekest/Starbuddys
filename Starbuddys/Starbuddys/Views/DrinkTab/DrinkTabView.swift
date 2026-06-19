@@ -110,3 +110,9 @@ struct DrinkTabView: View {
         withAnimation { toast = msg }
     }
 }
+
+#Preview("喝一杯 Tab") {
+    DrinkTabView()
+        .environmentObject(DrinkRepository.shared)
+        .modelContainer(for: CupRecord.self, inMemory: true)
+}

@@ -122,7 +122,7 @@ struct DrinkPickerSheet: View {
                             .foregroundStyle(brand == b ? .white : Color.sbInk1)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 9)
-                            .background(brand == b ? Color.sbGreenDeep : Color.sbLine.opacity(0.5))
+                            .background(brand == b ? b.brandColors.dark : Color.sbLine.opacity(0.5))
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.plain)
@@ -235,4 +235,9 @@ private struct DrinkPickerCell: View {
         }
         .buttonStyle(.plain)
     }
+}
+
+#Preview("饮品选择器") {
+    DrinkPickerSheet(records: []) { _ in }
+        .environmentObject(DrinkRepository.shared)
 }

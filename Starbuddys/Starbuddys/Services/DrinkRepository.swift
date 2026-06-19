@@ -5,32 +5,28 @@ import Combine
 final class DrinkRepository: ObservableObject {
     static let shared = DrinkRepository()
 
+    /// 对外公开的全量饮品（不含已删除），由 DrinkStore.$entries 驱动
     @Published private(set) var drinks: [Drink] = []
 
-    private init() { load() }
+    private var cancellable: AnyCancellable?
 
-    private func load() {
-        var combined: [Drink] = []
-        for name in ["drinks.seed", "manner.seed"] {
-            guard let url = Bundle.main.url(forResource: name, withExtension: "json") else {
-                if name == "drinks.seed" {
-                    assertionFailure("\(name).json not found in bundle")
-                }
-                continue
+    private init() {
+        cancellable = DrinkStore.shared.$entries
+            .sink { [weak self] entries in
+                self?.drinks = entries.map { Drink(from: $0) }
             }
-            do {
-                let data = try Data(contentsOf: url)
-                let parsed = try JSONDecoder().decode(DrinkSeedData.self, from: data).drinks
-                combined.append(contentsOf: parsed)
-            } catch {
-                assertionFailure("Failed to load \(name).json: \(error)")
-            }
-        }
-        drinks = combined
     }
+
+    // MARK: - 查询
 
     func drink(id: String) -> Drink? {
         drinks.first { $0.id == id }
+    }
+
+    /// 历史记录专用：包含已逻辑删除的饮品
+    func drinkForHistory(id: String) -> Drink? {
+        if let found = drinks.first(where: { $0.id == id }) { return found }
+        return DrinkStore.shared.entry(id: id).map { Drink(from: $0) }
     }
 
     func drinks(for category: DrinkCategory) -> [Drink] {
@@ -51,7 +47,7 @@ final class DrinkRepository: ObservableObject {
         return drinks.filter {
             $0.nameCN.lowercased().contains(q) ||
             $0.nameEN.lowercased().contains(q) ||
-            $0.category.rawValue.lowercased().contains(q)
+            ($0.customCategoryName ?? $0.category.rawValue).lowercased().contains(q)
         }
     }
 }

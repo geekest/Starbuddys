@@ -115,3 +115,28 @@ struct ToastView: View {
             .shadowMd()
     }
 }
+
+#Preview("导航头部组件") {
+    VStack(spacing: 0) {
+        NavHeaderView(title: "饮品详情", leftAction: {})
+        Divider()
+        NavHeaderView(
+            title: "编辑饮品",
+            leftAction: {},
+            rightContent: AnyView(
+                Text("编辑").font(.sbBodyMB).foregroundStyle(Color.sbInk)
+            )
+        )
+        Divider()
+        NavHeaderView(title: "无按钮标题")
+        Divider()
+        VStack(spacing: 12) {
+            GhostButton(title: "次要按钮", action: {})
+            PrimaryButton(title: "主要按钮", action: {})
+            PrimaryButton(title: "禁用状态", disabled: true, action: {})
+        }
+        .padding(20)
+        ToastView(message: "已保存成功")
+    }
+    .background(Color.sbCanvas)
+}
